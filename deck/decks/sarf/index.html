@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Fiqh of Forex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <canvas id="coins"></canvas>
+  <div class="vignette"></div>
+
+  <div class="chrome">
+    <span class="chapter"></span>
+    <span class="count"><b>01</b> / 13</span>
+  </div>
+  <div class="progress"><span></span></div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1 · COVER -->
+      <section data-anim="cover" data-coins="orbit" data-chapter="Fiqh al-Buyūʿ">
+        <p class="eyebrow" style="top:200px">Fiqh al-Buyūʿ · al-Mabḥath al-Thālith</p>
+        <p class="ar cover-ar" style="top:240px">فِي الصَّرْف</p>
+        <h1 class="display split" style="top:500px">The Fiqh of <em>Forex</em></h1>
+        <p class="cover-quote" style="top:690px">“Ṣarf, in the usage of the Sharīʿah, is the name for selling absolute prices for one another: gold for gold, silver for silver, and either kind for the other.”</p>
+        <p class="cite" style="top:880px">al-Kāsānī, <i>Badāʾiʿ al-Ṣanāʾiʿ</i>, as cited in <i>Fiqh al-Buyūʿ</i> by Mufti Muhammad Taqi Usmani, §312–337</p>
+        <aside class="notes">Fiqh al-Buyūʿ treats ṣarf as the third type of sale when sales are divided by the nature of the two counter-values. Its distinguishing rules are why it is given its own chapter: equality is required when both sides are of one kind; deferral is not allowed whether the kinds are the same or different; mutual possession must happen in the session (which, for the Ḥanafīs, separates ṣarf from other ribawi goods like wheat and barley); and a stipulated option is barred by agreement, because it prevents real possession. This deck follows the chapter: the conditions, then paper money, then the author’s ruling on Forex.</aside>
+      </section>
+
+      <!-- 2 · DEFINITION -->
+      <section data-anim="define" data-coins="deep" data-chapter="What ṣarf is">
+        <p class="eyebrow" style="top:128px">§312 · Definition</p>
+        <h2 class="h2 split" style="top:172px">Price sold for <em>price</em></h2>
+        <p class="lede" style="top:290px">Gold and silver are prices by their creation (athmān khilqiyya). Selling one for the other, or for itself, is ṣarf.</p>
+        <div class="pairs">
+          <div class="pair"><span class="coin g">د</span><svg class="swap" viewBox="0 0 160 60"><path d="M10 22 H140 l-14 -12 M150 38 H20 l14 12"/></svg><span class="coin g">د</span><p><b>Gold for gold</b>one kind</p></div>
+          <div class="pair"><span class="coin s">د</span><svg class="swap" viewBox="0 0 160 60"><path d="M10 22 H140 l-14 -12 M150 38 H20 l14 12"/></svg><span class="coin s">د</span><p><b>Silver for silver</b>one kind</p></div>
+          <div class="pair"><span class="coin g">د</span><svg class="swap" viewBox="0 0 160 60"><path d="M10 22 H140 l-14 -12 M150 38 H20 l14 12"/></svg><span class="coin s">د</span><p><b>Gold for silver</b>two kinds</p></div>
+        </div>
+      </section>
+
+      <!-- 3 · TAQABUD -->
+      <section data-anim="taqabud" data-coins="deep" data-chapter="Condition 1 of 3">
+        <p class="eyebrow" style="top:128px">§314 · Condition 1</p>
+        <p class="ar ar-label" style="top:160px">التقابض في المجلس</p>
+        <h2 class="h2 split" style="top:250px">Hand to hand, <em>in the session</em></h2>
+        <p class="lede narrow" style="top:460px">Both sides are possessed before the parties part bodily. Making it available (takhliya) is not enough, and not even an hour’s delay is allowed.</p>
+        <blockquote class="hadith" style="top:680px">“Gold for gold is riba, except hand to hand.”<cite>al-Bukhārī 2174, from ʿUmar</cite></blockquote>
+
+        <svg class="scene taq" viewBox="0 0 800 700" style="left:1000px;top:170px;width:800px;height:700px">
+          <ellipse class="majlis" cx="400" cy="330" rx="340" ry="210" />
+          <text class="cap" x="400" y="590">majlis al-ʿaqd · the session</text>
+          <g class="person pa" transform="translate(170 380)"><circle r="30" cy="-74"/><path d="M-54 46 Q-52 -24 0 -24 Q52 -24 54 46 Z"/></g>
+          <g class="person pb" transform="translate(630 380)"><circle r="30" cy="-74"/><path d="M-54 46 Q-52 -24 0 -24 Q52 -24 54 46 Z"/></g>
+          <line class="broken" x1="250" y1="330" x2="550" y2="330" />
+          <g class="scoin cg" transform="translate(250 330)"><circle r="30"/><circle class="in" r="22"/></g>
+          <g class="scoin cs" transform="translate(550 330)"><circle r="30"/><circle class="in" r="22"/></g>
+        </svg>
+        <div class="verdict ok" style="left:1400px;top:840px"><i></i><span>Valid ṣarf</span></div>
+        <div class="verdict bad" style="left:1400px;top:840px"><i></i><span>Void: they parted before possession</span></div>
+        <span class="fragment step"></span>
+        <aside class="notes">Evidence: “Gold for gold is riba except hand to hand (hāʾa wa hāʾa)” (al-Bukhārī 2174, from ʿUmar), and “Do not sell gold for gold except like for like… and do not sell what is absent for what is present” (al-Bukhārī 2177, from Abū Saʿīd al-Khudrī). Parting means parting with the bodies: if they stay in their session, however long, there is no parting; if one calls the other from behind a wall, the ṣarf is not valid. Takhliya is enough for possession in other sales for the Ḥanafīs, but not in ṣarf, by consensus. Al-Durr al-Mukhtār: “taqābuḍ with the fingers, not by takhliya.” Ibn ʿAbd al-Barr: “No delay in any ṣarf is allowed, not even an hour.” (Press → to show a party leaving before possession.)</aside>
+      </section>
+
+      <!-- 4 · TAMATHUL -->
+      <section data-anim="tamathul" data-coins="deep" data-chapter="Condition 2 of 3">
+        <p class="eyebrow" style="top:128px">§316 · Condition 2</p>
+        <p class="ar ar-label" style="top:160px">التماثل في صرف المتجانسين</p>
+        <h2 class="h2 split" style="top:250px">Like for like, <em>within one kind</em></h2>
+        <p class="lede narrow" style="top:460px">Gold for gold, silver for silver: equal weight, even if quality and workmanship differ.</p>
+        <p class="lede narrow dim" style="top:640px">Exchanging by estimate (mujāzafa) is barred by consensus.</p>
+
+        <svg class="scene scale" viewBox="0 0 800 720" style="left:1000px;top:150px;width:800px;height:720px">
+          <defs><linearGradient id="goldg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f2d68a"/><stop offset="1" stop-color="#a77d2c"/></linearGradient></defs>
+          <path class="post" d="M340 640 H460 L416 210 H384 Z" />
+          <rect class="foot" x="250" y="632" width="300" height="18" rx="9" />
+          <g class="pan pl"><path class="str" d="M0 0 L-90 190 M0 0 L90 190"/><ellipse class="dish" cx="0" cy="196" rx="110" ry="22"/><g class="stack"></g><text class="w" y="270">10 g gold</text></g>
+          <g class="pan pr"><path class="str" d="M0 0 L-90 190 M0 0 L90 190"/><ellipse class="dish" cx="0" cy="196" rx="110" ry="22"/><g class="stack"></g><text class="w" y="270">10 g gold</text></g>
+          <g class="beam"><rect x="-290" y="-8" width="580" height="16" rx="8"/><circle r="22"/></g>
+        </svg>
+        <div class="verdict ok" style="left:1400px;top:880px"><i></i><span>Equal weight: valid</span></div>
+        <div class="verdict bad" style="left:1400px;top:880px"><i></i><span>Riba: excess within one kind</span></div>
+        <span class="fragment step"></span>
+        <aside class="notes">Tamāthul (§316) applies only when both sides are of one kind. Quality and workmanship do not count: wrought gold against coined gold is still weighed like for like. (Press → to tip the scale to 10 g against 12 g.)</aside>
+      </section>
+
+      <!-- 5 · NO OPTION -->
+      <section data-anim="option" data-coins="deep" data-chapter="Condition 3 of 3">
+        <p class="eyebrow" style="top:128px">§317 · Condition 3</p>
+        <p class="ar ar-label" style="top:160px">الخلو عن خيار الشرط</p>
+        <h2 class="h2 split" style="top:250px">No option <em>to cancel</em></h2>
+        <p class="lede narrow" style="top:460px">A stipulated option delays full ownership, and so breaks complete possession.</p>
+        <p class="lede narrow dim" style="top:640px">The option for defects still applies. The option of inspection applies to wrought pieces, not to coined dirhams and dinars.</p>
+
+        <div class="contract">
+          <p class="c-head">ʿAqd al-ṣarf</p>
+          <p class="c-ar ar">عقد الصرف</p>
+          <ul>
+            <li><span>Gold dinars</span><b>⇄</b><span>Silver dirhams</span></li>
+            <li><span>Both sides taken in the session</span><b class="tick">✓</b></li>
+            <li class="clause"><span>Buyer may cancel within three days</span><b class="mark">?</b><svg viewBox="0 0 600 20" preserveAspectRatio="none"><path d="M0 12 Q150 4 300 11 T600 9"/></svg></li>
+          </ul>
+          <div class="stamp">Barred in ṣarf</div>
+        </div>
+        <span class="fragment step"></span>
+        <aside class="notes">A stipulated option (khiyār al-sharṭ) is barred by agreement because it prevents real possession: ownership is not complete while one party may still cancel. The option for defects (khiyār al-ʿayb) remains. The option of inspection applies to wrought pieces, not to coined dirhams and dinars. (Press → to strike the option clause.)</aside>
+      </section>
+
+      <!-- 6 · MATRIX -->
+      <section data-anim="matrix" data-coins="deep" data-chapter="The conditions together">
+        <p class="eyebrow" style="top:128px">§318 · In summary</p>
+        <h2 class="h2 split" style="top:172px">What each exchange <em>requires</em></h2>
+        <div class="matrix">
+          <div class="mh"></div>
+          <div class="mh">Equal amounts<small>tamāthul</small></div>
+          <div class="mh">Hand to hand<small>taqābuḍ</small></div>
+          <div class="mr"><span class="coin g sm">د</span><span class="coin g sm">د</span>Gold for gold<small>one kind</small></div>
+          <div class="mc need"><svg viewBox="0 0 40 40"><path d="M8 21 L17 30 L33 11"/></svg>Required</div>
+          <div class="mc need"><svg viewBox="0 0 40 40"><path d="M8 21 L17 30 L33 11"/></svg>Required</div>
+          <div class="mr"><span class="coin g sm">د</span><span class="coin s sm">د</span>Gold for silver<small>two kinds</small></div>
+          <div class="mc free"><svg viewBox="0 0 40 40"><path d="M10 20 H30"/></svg>Excess allowed</div>
+          <div class="mc need"><svg viewBox="0 0 40 40"><path d="M8 21 L17 30 L33 11"/></svg>Required</div>
+        </div>
+        <p class="foot-note">In every ṣarf: no stipulated option.</p>
+      </section>
+
+      <!-- 7 · PAPER MONEY POSITIONS -->
+      <section data-anim="positions" data-coins="deep" data-chapter="Paper money">
+        <p class="eyebrow" style="top:128px">§328 · Paper money</p>
+        <h2 class="h2 split" style="top:172px">What is a <em>banknote?</em></h2>
+        <div class="positions">
+          <article class="pos"><span class="n">Position 1</span><h3>A receipt for debt</h3><p>Notes are bonds of debt, so exchanging them would be impossible without real taqābuḍ.</p></article>
+          <article class="pos"><span class="n">Position 2</span><h3>Gold and silver</h3><p>Notes take the full ruling of gold and silver, with every condition of ṣarf.</p></article>
+          <article class="pos chosen"><span class="badge">The author’s view</span><span class="n">Position 3</span><h3>A conventional price</h3><p class="ar">أثمان اصطلاحية</p><p>Made a price by custom and law, closest to circulating fulūs. Each country’s currency is its own kind.</p></article>
+        </div>
+        <span class="fragment step"></span>
+        <aside class="notes">The book surveys how contemporaries treat paper money. Some called notes bonds of debt, which would make exchange impossible without real taqābuḍ. Others gave them the full ruling of gold and silver. The author’s preferred “third position”: notes have become conventional prices by custom and law, closest to the circulating fulūs (al-fulūs al-nāfiqa). (Press → to bring the author’s view forward.)</aside>
+      </section>
+
+      <!-- 8 · DECISION TREE -->
+      <section data-anim="tree" data-coins="deep" data-chapter="Paper money">
+        <p class="eyebrow" style="top:128px">§328 · Applying the third position</p>
+        <h2 class="h2 split" style="top:172px">Exchanging <em>currencies</em></h2>
+        <svg class="scene tree" viewBox="0 0 1664 640" style="left:128px;top:330px;width:1664px;height:640px">
+          <g class="edges">
+            <path d="M832 92 C832 150 400 130 400 210" data-c="blue"/>
+            <path d="M832 92 C832 150 1180 130 1180 210" data-c="gold"/>
+            <path d="M400 300 C400 360 400 380 400 440" data-c="blue"/>
+            <path d="M1180 300 C1180 360 960 380 960 440" data-c="gold"/>
+            <path d="M1180 300 C1180 360 1400 380 1400 440" data-c="orange"/>
+          </g>
+          <g class="flow"></g>
+          <g class="node root" transform="translate(832 50)"><rect x="-230" y="-42" width="460" height="84" rx="20"/><text y="10">Currency ⇄ Currency</text></g>
+          <g class="node blue" transform="translate(400 255)"><rect x="-230" y="-48" width="460" height="96" rx="20"/><text y="-6">Same currency</text><text class="s" y="28">rupee for rupee</text></g>
+          <g class="node gold" transform="translate(1180 255)"><rect x="-230" y="-48" width="460" height="96" rx="20"/><text y="-6">Different currencies</text><text class="s" y="28">rupee for riyal</text></g>
+          <g class="node blue leaf" transform="translate(400 520)"><rect x="-230" y="-80" width="460" height="160" rx="20"/><text y="-28">Equal amounts</text><text class="s" y="10">No deferral, by agreement</text><text class="s" y="44">of the Ḥanafī imams</text></g>
+          <g class="node gold leaf" transform="translate(960 520)"><rect x="-200" y="-80" width="400" height="160" rx="20"/><text y="-28">Both sides now</text><text class="s" y="10">Any agreed rate</text><text class="s" y="44">excess is allowed</text></g>
+          <g class="node orange leaf" transform="translate(1400 520)"><rect x="-200" y="-80" width="400" height="160" rx="20"/><text y="-28">One side later</text><text class="s" y="10">One side taken in session,</text><text class="s" y="44">at the day’s rate</text></g>
+        </svg>
+        <aside class="notes">Exchanging the same currency (rupee for rupee) with deferral is not allowed by agreement of the Ḥanafī imams, because a single kind alone forbids nasīʾah. Exchanging different currencies (Pakistani rupee for Saudi riyal), by analogy with Imam Muḥammad’s view on fulūs, allows both excess and deferral, provided one of the two sides is taken in the session. Where one side is deferred, the exchange must be at the rate of the day of the contract, so it does not become a back door to riba (p. 713). On rates set by law: if a government fixes an exchange rate, it should be followed, though breaching it is not itself riba (p. 702).</aside>
+      </section>
+
+      <!-- 9 · QUOTE (light) -->
+      <section data-anim="quote" data-coins="deep" data-chapter="Paper money" class="light">
+        <p class="eyebrow" style="top:128px">The author’s words · p. 713</p>
+        <p class="ar big-quote">«فيجوز فيها <span>التفاضلُ</span> و<span>النسيئةُ</span> جميعاً، بشرط أن يُقبَض أحدُ البدلين في المجلس، لئلّا يؤدّي إلى الافتراق عن <span>دَينٍ بدَين</span>»</p>
+        <hr class="rule" />
+        <p class="translation split-words">Excess and deferral are both allowed, provided one side is taken in the session, so the parties never part holding <em>debt against debt.</em></p>
+      </section>
+
+      <!-- 10 · FOREX MARKET -->
+      <section data-anim="market" data-coins="fall" data-chapter="Forex">
+        <canvas class="candles"></canvas>
+        <div class="shade"></div>
+        <p class="eyebrow" style="top:128px">§337 · Fiqh al-Buyūʿ</p>
+        <p class="ar ar-label" style="top:160px">تجارة العملات عن طريق الفوريكس</p>
+        <h2 class="h2 split" style="top:250px">Trading currencies <em>through Forex</em></h2>
+        <div class="bignum" style="top:440px"><small>$</small><span class="count">0.0</span><small> trillion</small></div>
+        <p class="lede narrow" style="top:640px">traded every day, by the book’s figure. Most of it is speculation: <i>mujāzafa</i> and <i>takhmīn</i>.</p>
+      </section>
+
+      <!-- 11 · FIVE PROBLEMS -->
+      <section data-anim="problems" data-coins="deep" data-chapter="Forex">
+        <p class="eyebrow" style="top:128px">§337 · Where it fails</p>
+        <h2 class="h2 split" style="top:172px">Five <em>problems</em></h2>
+        <ol class="problems">
+          <li><b>1</b><div><h3>Money turned into merchandise</h3><p>Currency exists to value things, not to be traded for itself; doing so has damaged the financial system.</p></div></li>
+          <li><b>2</b><div><h3>No possession in the session</h3><p>“Spot” deals settle two days later and run by computer, so not even one currency is taken in the session.</p></div></li>
+          <li><b>3</b><div><h3>Selling what one does not own</h3><p>Often nothing is delivered or received; buyers and sellers simply settle the price differences.</p></div></li>
+          <li><b>4</b><div><h3>Sale on margin</h3><p>Deposit a little, trade a lot; the exchange guarantees the rest for a commission. In reality, a riba loan.</p></div></li>
+          <li><b>5</b><div><h3>Currencies never specified</h3><p>Currency is specified (taʿyīn) only by possession, which is missing in most of these operations.</p></div></li>
+        </ol>
+        <span class="fragment step"></span><span class="fragment step"></span><span class="fragment step"></span><span class="fragment step"></span>
+        <aside class="notes">From §337 (pp. 727–728). One: currencies are a means of valuing things and not sought for themselves; the Sharīʿah does not favour making them the object of trade except for a real need to exchange, which is why ṣarf carries its conditions. The market made currency itself the object of trade, which has caused great corruption in the modern financial system (he refers to his paper on the causes of the financial crisis). Two: many contemporary scholars and fiqh academies give paper currency the ruling of gold and silver, requiring taqābuḍ in the session, which is missing, since the market divides into spot and forward sales and even the “spot sale” settles only two days after the contract. On the author’s preferred third position, one of the two currencies must be taken in the session, and that too is missing, since dealing is by computer or internet. Three: people often sell what they do not own, with no delivery; they settle price differences. Four: margin trading is in reality a loan on which interest is charged. Five: currencies bought are not specified, since specification of currencies happens only by possession. (Press → to step through each problem.)</aside>
+      </section>
+
+      <!-- 12 · VERDICT -->
+      <section data-anim="verdict" data-coins="halo" data-chapter="The ruling">
+        <div class="verdict-wrap">
+          <p class="eyebrow center">The ruling · §337</p>
+          <p class="ar verdict-ar">فإنّه لا يجوز التعامل شرعاً عن طريق سوق الفوريكس</p>
+          <h2 class="verdict-en split">Dealing through the Forex market is <em>not permissible</em> in the Sharīʿah.</h2>
+          <p class="verdict-alt">Genuine need for travel or trade is met by ordinary money changers, within the conditions of ṣarf.</p>
+        </div>
+        <aside class="notes">Conclusion: it is not permissible to deal through the Forex market. Genuine need for travel or international trade is met through ordinary buying and selling with money changers, keeping to the conditions above.</aside>
+      </section>
+
+      <!-- 13 · RECAP -->
+      <section data-anim="recap" data-coins="orbit" data-chapter="Recap">
+        <p class="eyebrow" style="top:200px">Recap</p>
+        <h2 class="h2 split" style="top:244px">Ṣarf in <em>three lines</em></h2>
+        <ul class="recap">
+          <li><b>Hand to hand</b> in every ṣarf, before the parties part.</li>
+          <li><b>Like for like</b> when both sides are one kind.</li>
+          <li><b>No option</b> to cancel may be stipulated.</li>
+        </ul>
+        <p class="cite" style="top:860px">Source: Mufti Muhammad Taqi Usmani, <i>Fiqh al-Buyūʿ</i>, al-Mabḥath al-Thālith fī al-Ṣarf, §312–337</p>
+      </section>
+
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

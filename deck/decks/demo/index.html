@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Motion Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;500;700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="grain"></div>
+  <div class="progress"><span></span></div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1 · Title -->
+      <section data-anim="title">
+        <p class="eyebrow mono">Q4 · 2026 · Strategy Review</p>
+        <h1 class="title split">Make it <em>move.</em></h1>
+        <p class="sub fade-up">A deck that earns attention instead of asking for it.</p>
+        <div class="scroll-hint fade-up"><span></span> press → to begin</div>
+      </section>
+
+      <!-- 2 · Statement -->
+      <section data-anim="statement">
+        <h2 class="statement">
+          <span class="w">Most</span> <span class="w">slides</span> <span class="w">are</span>
+          <span class="w">read,</span> <span class="w">not</span> <span class="w">felt.</span><br />
+          <span class="w">Motion</span> <span class="w">tells</span> <span class="w">the</span>
+          <span class="w">eye</span> <span class="w hl">where</span> <span class="w hl">to</span> <span class="w hl">look.</span>
+        </h2>
+      </section>
+
+      <!-- 3 · Stats -->
+      <section data-anim="stats">
+        <p class="eyebrow mono">Results</p>
+        <div class="stats">
+          <div class="stat">
+            <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" cx="60" cy="60" r="52" data-pct="0.87"/></svg>
+            <div class="num"><span class="count" data-to="87">0</span><small>%</small></div>
+            <p>retention after 90 days</p>
+          </div>
+          <div class="stat">
+            <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" cx="60" cy="60" r="52" data-pct="0.64"/></svg>
+            <div class="num"><span class="count" data-to="3.4" data-dec="1">0</span><small>×</small></div>
+            <p>faster onboarding</p>
+          </div>
+          <div class="stat">
+            <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" cx="60" cy="60" r="52" data-pct="0.42"/></svg>
+            <div class="num"><small>$</small><span class="count" data-to="12.8" data-dec="1">0</span><small>M</small></div>
+            <p>new annual revenue</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 · Timeline -->
+      <section data-anim="timeline">
+        <p class="eyebrow mono">Roadmap</p>
+        <h2 class="h2 split">How we get there</h2>
+        <div class="timeline">
+          <svg viewBox="0 0 1000 120" preserveAspectRatio="none">
+            <path class="line" d="M 20 60 C 180 0, 320 120, 500 60 S 820 0, 980 60" />
+          </svg>
+          <div class="node" style="left:2%"><b>Q1</b><span>Research &amp; discovery</span></div>
+          <div class="node" style="left:34%"><b>Q2</b><span>Prototype &amp; validate</span></div>
+          <div class="node" style="left:66%"><b>Q3</b><span>Pilot with 3 partners</span></div>
+          <div class="node" style="left:98%"><b>Q4</b><span>General availability</span></div>
+        </div>
+      </section>
+
+      <!-- 5 · Chart -->
+      <section data-anim="chart">
+        <p class="eyebrow mono">Growth</p>
+        <h2 class="h2 split">Compounding, quarter over quarter</h2>
+        <div class="chart">
+          <div class="bar" data-v="22"><i></i><label>Q1</label><em>22</em></div>
+          <div class="bar" data-v="31"><i></i><label>Q2</label><em>31</em></div>
+          <div class="bar" data-v="47"><i></i><label>Q3</label><em>47</em></div>
+          <div class="bar" data-v="68"><i></i><label>Q4</label><em>68</em></div>
+          <div class="bar accent" data-v="96"><i></i><label>Q1 ’27</label><em>96</em></div>
+        </div>
+      </section>
+
+      <!-- 6 · Cards -->
+      <section data-anim="cards">
+        <p class="eyebrow mono">Three bets</p>
+        <div class="cards">
+          <article class="card"><span class="idx mono">01</span><h3>Focus</h3><p>Cut the roadmap to the three things customers actually pay for.</p></article>
+          <article class="card"><span class="idx mono">02</span><h3>Speed</h3><p>Ship weekly. Every release is small, reversible and measured.</p></article>
+          <article class="card"><span class="idx mono">03</span><h3>Craft</h3><p>Polish is a feature. Details are what people remember.</p></article>
+        </div>
+      </section>
+
+      <!-- 7 · Close -->
+      <section data-anim="close">
+        <svg class="blob" viewBox="0 0 600 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a1)"/><stop offset="1" stop-color="var(--a2)"/></linearGradient></defs><path fill="url(#g)" d=""/></svg>
+        <h1 class="title split">Let’s <em>build</em> it.</h1>
+        <p class="sub fade-up mono">questions → hello@example.com</p>
+      </section>
+
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
