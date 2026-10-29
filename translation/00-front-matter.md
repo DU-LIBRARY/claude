@@ -4,7 +4,7 @@
 **Arabic translation (from the Urdu original):** Kalimullah al-Bashini
 **Series:** The Arabic Series, Book 34 — MABDA / Royal Aal al-Bayt Institute for Islamic Thought, Amman, Jordan (2014)
 
-*English translation from the Arabic edition. Page numbers in square brackets, e.g. [p. 153], refer to the printed page numbers of the Arabic edition, so that citations can be checked against the original. Qur'anic verses are given in meaning (not as a literal rendering of the Qur'an), with the sura and verse reference as given in the original. Translator's notes are marked "[Tr.: …]".*
+*English translation from the Arabic edition. Page numbers in square brackets, e.g. [p. 153], refer to the printed page numbers of the Arabic edition, so that citations can be checked against the original. Qur'anic verses are given in meaning (not as a literal rendering of the Qur'an), with the sura and verse reference as given in the original. Translator's notes are marked "[Tr.: …]"; apparent factual slips in the original (dates, names, figures) are kept as written and flagged "[sic: …]". English or Urdu glosses that the Arabic edition adds after technical terms are generally omitted where they merely repeat the English, and kept where they add information.*
 
 ---
 
@@ -83,7 +83,7 @@
 - Introduction — 35
 - (1) Monarchy — 35
   - (1) Absolute monarchy — 35
-  - (2) Consultative monarchy (Counciling Monarchy) — 36
+  - (2) Consultative monarchy — 36
   - (3) Religious monarchy — 37
   - The fourth type: Constitutional monarchy — 38
 - (2) Aristocracy — 40
