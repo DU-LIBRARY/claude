@@ -22,7 +22,7 @@ An offline web app for the narrators of *Mishkāt al-Maṣābīḥ*, from al-Kha
 - Deep links: `…/#n433` opens entry 433. Copy, share, or copy a link to any entry.
 - A random-narrator button, `/` to jump to search, and `Esc` to clear it.
 - Motion with the [Motion](https://motion.dev) library: entries open with a measured height animation, lists stagger in, segmented controls slide, and the title plate draws an eight-pointed-star field. Everything respects *Reduce motion*.
-- Filters fold away on phones while you scroll down and return when you scroll up.
+- The search bar stays at the top. The filters scroll away with the page, and the filter button opens them as a dropdown. A dot on the button shows a filter is on.
 
 ## Publish with GitHub Pages
 
@@ -52,3 +52,21 @@ python3 tools/sync_from_artifact.py path/to/artifact.html
 
 It replaces `app/data/ikmal.json`, lists which entries were added, removed or changed, bumps the
 service-worker version and rebuilds the single file. Commit and push to `main`, and Pages redeploys.
+
+## Syncing notes between devices (Google sign-in)
+
+Notes always save on the device first. With sync on, they are also copied to your own Firebase
+project and appear on every device signed in to the same Google account. For each note the newest
+edit wins, deletions sync too, and edits made offline upload when the device reconnects.
+
+One-time setup:
+
+1. Go to https://console.firebase.google.com, choose **Create a project** (any name, Analytics not needed).
+2. **Build → Authentication → Get started → Sign-in method → Google → Enable**, pick your email, **Save**.
+3. **Authentication → Settings → Authorized domains → Add domain**: `du-library.github.io`.
+4. **Build → Firestore Database → Create database**, pick a location near you, start in **production mode**.
+5. In Firestore, open the **Rules** tab, replace everything with the contents of `firestore.rules`, **Publish**.
+6. **Project settings (gear) → Your apps → Web (`</>`)**, register an app (no Hosting), and copy the `firebaseConfig` values into `app/firebase-config.js`.
+
+The config values are not secret; the rules make sure each person can only read and write their own notes.
+Sync runs on the website app only. Google sign-in can't run from the single offline file or the claude.ai page.

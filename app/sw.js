@@ -1,10 +1,15 @@
 /* Offline cache for the Al-Ikmāl Narrator Index.
    Bump VERSION whenever any file below changes so visitors receive the update. */
-const VERSION = 'ikmal-v1.1.0';
+const VERSION = 'ikmal-v1.2.0';
 const ASSETS = [
   './',
   'index.html',
   'app.js',
+  'sync.js',
+  'firebase-config.js',
+  'vendor/firebase-app-compat-10.14.1.js',
+  'vendor/firebase-auth-compat-10.14.1.js',
+  'vendor/firebase-firestore-compat-10.14.1.js',
   'manifest.webmanifest',
   'data/ikmal.json',
   'vendor/motion-11.11.17.min.js',

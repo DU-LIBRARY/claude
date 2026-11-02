@@ -35,8 +35,10 @@ def inline_js(path):
 
 html = html.replace('<script src="vendor/motion-11.11.17.min.js"></script>', inline_js('vendor/motion-11.11.17.min.js'))
 html = html.replace('<script src="app.js"></script>', inline_js('app.js'))
+# Sync needs the hosted website (Google sign-in does not run from a local file), so leave it out.
+html = html.replace('<script src="firebase-config.js"></script>\n', '').replace('<script src="sync.js"></script>\n', '')
 
-assert 'src="vendor' not in html and 'src="app.js"' not in html and 'url(fonts/' not in html
+assert 'src="sync.js"' not in html and 'src="vendor' not in html and 'src="app.js"' not in html and 'url(fonts/' not in html
 OUT.parent.mkdir(exist_ok=True)
 OUT.write_text(html, encoding='utf-8')
 print(f'{OUT.relative_to(ROOT)}  {OUT.stat().st_size/1e6:.2f} MB')

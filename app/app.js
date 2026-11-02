@@ -140,7 +140,7 @@
       try {
         const tx = idb.transaction('notes', 'readwrite');
         const os = tx.objectStore('notes');
-        if (rec.text) os.put(rec); else os.delete(rec.id);
+        os.put({ id: rec.id, text: rec.text || '', updated: rec.updated || Date.now() });
         tx.oncomplete = () => res(true); tx.onerror = () => res(false); tx.onabort = () => res(false);
       } catch (e) { res(false); }
     });
@@ -149,16 +149,26 @@
   function lsWrite() {
     try {
       const o = {}; notes.forEach((v, k) => { o[k] = v; });
+      tombs.forEach((u, k) => { if (!notes.has(k)) o[k] = { text: '', updated: u }; });
       localStorage.setItem(NOTES_LS, JSON.stringify(o)); return true;
     } catch (e) { return false; }
   }
+  // Deleted notes are remembered as tombstones (id -> time deleted) so a deletion syncs too.
+  const tombs = new Map();
+  function stamp(id) { const n = notes.get(id); return Math.max(n ? n.updated || 0 : 0, tombs.get(id) || 0); }
   function mergeNote(id, rec) {
     if (!rec || typeof rec.text !== 'string') return false;
-    const cur = notes.get(id);
-    if (cur && (cur.updated || 0) >= (rec.updated || 0)) return false;
-    if (rec.text.trim()) notes.set(id, { text: rec.text, updated: rec.updated || Date.now() });
-    else notes.delete(id);
+    const u = Number(rec.updated) || 0;
+    if (stamp(id) >= u && (notes.has(id) || tombs.has(id))) return false;
+    if (rec.text.trim()) { notes.set(id, { text: rec.text, updated: u || Date.now() }); tombs.delete(id); }
+    else { notes.delete(id); tombs.set(id, u || Date.now()); }
     return true;
+  }
+  function allRecords() {
+    const out = [];
+    notes.forEach((v, k) => out.push({ id: k, text: v.text, updated: v.updated }));
+    tombs.forEach((u, k) => { if (!notes.has(k)) out.push({ id: k, text: '', updated: u }); });
+    return out;
   }
   async function loadNotes() {
     const ls = lsNotes();
@@ -170,7 +180,7 @@
         rows.forEach((r) => mergeNote(r.id, r));
         // make sure both copies hold everything
         const have = new Set(rows.map((r) => r.id));
-        notes.forEach((v, k) => { if (!have.has(k)) idbPut({ id: k, text: v.text, updated: v.updated }); });
+        allRecords().forEach((r) => { if (!have.has(r.id)) idbPut(r); });
       }
     }
     lsWrite();
@@ -182,12 +192,41 @@
   }
   async function saveNote(id, text) {
     const rec = { id, text: text.replace(/\s+$/, ''), updated: Date.now() };
-    if (rec.text.trim()) notes.set(id, { text: rec.text, updated: rec.updated }); else notes.delete(id);
+    if (rec.text.trim()) { notes.set(id, { text: rec.text, updated: rec.updated }); tombs.delete(id); }
+    else { notes.delete(id); tombs.set(id, rec.updated); }
     const a = await idbPut(rec), b = lsWrite();
     askPersist();
     updateNoteMarks(id);
+    if (window.IkmalNotes && window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e) {} }
     return a || b;
   }
+  /* Bridge for sync.js: read every record, and apply a newer copy that arrived from another device. */
+  window.IkmalNotes = {
+    records: allRecords,
+    label: (id) => { const e = BYID.get(id); return e ? { entry: e._lab, name: e.ar } : { entry: id, name: '' }; },
+    applyRemote(id, rec) {
+      const prev = notes.get(id);
+      const prevText = prev ? prev.text : '';
+      if (!BYID.has(id) || !mergeNote(id, rec)) return false;
+      const cur = notes.get(id);
+      idbPut(cur ? { id, text: cur.text, updated: cur.updated } : { id, text: '', updated: tombs.get(id) });
+      lsWrite();
+      updateNoteMarks(id);
+      const t = document.getElementById('note-' + id);
+      // Replace the box's text unless it holds typing that has not been saved yet (that typing is newer).
+      if (t && t.value.replace(/\s+$/, '') === prevText && !pending.has(id)) {
+        const focused = document.activeElement === t, pos = t.selectionStart;
+        t.value = cur ? cur.text : '';
+        if (focused) { try { t.setSelectionRange(Math.min(pos, t.value.length), Math.min(pos, t.value.length)); } catch (e) {} }
+        const st2 = t.parentNode.querySelector('.note-st');
+        if (st2) st2.textContent = cur ? 'Updated from another device ' + when(cur.updated) : 'Deleted on another device';
+        autosize(t);
+      }
+      return true;
+    },
+    refresh() { if (DATA.length && st.cat === 'notes') run(false); },
+    onLocalSave: null
+  };
 
   /* ---------- state ---------- */
   let DATA = [];
@@ -369,6 +408,7 @@
         .sort((a, b) => b[0] - a[0] || a[1].n - b[1].n).map((x) => x[1]);
     }
     st.hits = hits; st.qe = qe; st.qa = qa;
+    updateBadge();
     render(animate);
   }
 
@@ -679,32 +719,65 @@
   $('settings').addEventListener('click', () => openDialog($('dlg-settings')));
   document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
 
-  /* sticky deck shadow, compact filters on phones while scrolling down, back-to-top */
+  /* Sticky search bar. The filters sit in the page under it and scroll away normally; once they are
+     out of view the Filters button opens them as a dropdown under the bar. Nothing changes size while
+     you scroll, which keeps scrolling smooth on phones. */
   const deck = $('deck'), topBtn = $('top'), fbtn = $('filters');
-  const narrow = matchMedia('(max-width: 600px)');
-  let topShown = false, lastY = 0, pinnedOpen = false;
-  function setCompact(on) {
-    if (deck.classList.contains('compact') === on) return;
-    deck.classList.toggle('compact', on);
-    fbtn.setAttribute('aria-expanded', String(!on));
-    fbtn.setAttribute('aria-label', on ? 'Show filters' : 'Hide filters');
-    if (!on) setTimeout(() => langSeg.place(false), 30);
+  const fold = $('fold'), home = $('filters-home'), panel = $('panel'), panelIn = $('panel-in');
+  let topShown = false, panelOpen = false, homeVisible = true;
+  function filtersActive() { return st.cat !== 'all' || st.letter !== 'all' || $('deep').checked; }
+  function updateBadge() { $('fbadge').hidden = !filtersActive(); }
+  function openPanel() {
+    if (panelOpen) return;
+    panelOpen = true;
+    home.style.minHeight = home.offsetHeight + 'px'; // keep the page from shifting while the filters are borrowed
+    panelIn.appendChild(fold);
+    panel.hidden = false;
+    fbtn.setAttribute('aria-expanded', 'true'); fbtn.setAttribute('aria-label', 'Hide filters');
+    langSeg.place(false);
+    if (canAnimate()) M.animate(panel, { opacity: [0, 1], y: [-8, 0] }, { duration: 0.22, ease: EASE });
+  }
+  function closePanel(instant) {
+    if (!panelOpen) return;
+    panelOpen = false;
+    fbtn.setAttribute('aria-expanded', 'false'); fbtn.setAttribute('aria-label', 'Show filters');
+    const done = () => { panel.hidden = true; panel.style.opacity = ''; panel.style.transform = ''; home.appendChild(fold); home.style.minHeight = ''; langSeg.place(false); };
+    if (!instant && canAnimate()) M.animate(panel, { opacity: 0, y: -6 }, { duration: 0.16 }).then(done); else done();
   }
   fbtn.addEventListener('click', () => {
-    const show = deck.classList.contains('compact');
-    pinnedOpen = show; setCompact(!show);
+    if (panelOpen) { closePanel(); return; }
+    if (homeVisible) { // filters already on screen: point at them
+      if (canAnimate()) M.animate(fold, { opacity: [0.4, 1] }, { duration: 0.4 });
+      return;
+    }
+    openPanel();
   });
+  document.addEventListener('pointerdown', (e) => {
+    if (panelOpen && !panel.contains(e.target) && !fbtn.contains(e.target)) closePanel();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panelOpen) closePanel(); });
+  // after picking a filter from the dropdown, bring the top of the new results under the bar
+  fold.addEventListener('click', (e) => {
+    if (e.target.closest('.chip')) updateBadge();
+    if (!panelOpen || !e.target.closest('.chip')) return;
+    requestAnimationFrame(() => {
+      const y = home.getBoundingClientRect().bottom + window.scrollY - deck.offsetHeight - (parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0);
+      if (window.scrollY > y) window.scrollTo({ top: y, behavior: 'auto' });
+    });
+  });
+  $('deep').addEventListener('change', updateBadge);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((es) => { es.forEach((e) => { deck.classList.toggle('stuck', !e.isIntersecting); }); }, { threshold: 0 }).observe($('deck-top'));
+    new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        homeVisible = e.isIntersecting;
+        fbtn.classList.toggle('on', !homeVisible && filtersActive());
+        if (homeVisible && panelOpen) closePanel(true);
+      });
+    }, { rootMargin: '-120px 0px 0px 0px' }).observe(home);
+  }
   function onScroll() {
     const y = window.scrollY;
-    const stuck = y > deck.offsetTop - 1 && y > 0;
-    deck.classList.toggle('stuck', stuck);
-    if (narrow.matches && document.activeElement !== q) {
-      if (!stuck) { pinnedOpen = false; setCompact(false); }
-      else if (y > lastY + 6 && !pinnedOpen) setCompact(true);
-      else if (y < lastY - 40) { setCompact(false); }
-      if (Math.abs(y - lastY) > 300) pinnedOpen = false;
-    } else if (!narrow.matches) setCompact(false);
-    lastY = y;
     const show = y > 900;
     if (show !== topShown) {
       topShown = show;
@@ -804,7 +877,9 @@
       for (const [k, v] of Object.entries(j.notes)) {
         if (!BYID.has(k) || !mergeNote(k, v)) continue;
         const cur = notes.get(k);
-        await idbPut(cur ? { id: k, text: cur.text, updated: cur.updated } : { id: k, text: '' });
+        const rec = cur ? { id: k, text: cur.text, updated: cur.updated } : { id: k, text: '', updated: tombs.get(k) };
+        await idbPut(rec);
+        if (window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e2) {} }
         n++;
       }
       lsWrite(); askPersist();
@@ -841,7 +916,7 @@
     M.animate(deck, { opacity: [0, 1] }, { duration: 0.5, delay: 0.25 });
   }
 
-  if (narrow.matches) q.placeholder = 'ابحث… name or number';
+  if (matchMedia('(max-width: 600px)').matches) q.placeholder = 'ابحث… name or number';
   const ready = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 600))]) : Promise.resolve();
   ready.then(() => { langSeg.place(false); intro(); });
 
