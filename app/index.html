@@ -169,6 +169,16 @@ li.open .chev{transform:rotate(180deg)}
 .inner{padding:8px 6px 22px calc(3.6em + 18px);display:grid;gap:14px}
 .en{font-family:var(--serif);font-size:calc(17px * var(--scale));line-height:1.68;max-width:66ch;margin:0;font-optical-sizing:auto}
 .arb{font-family:var(--ar);font-size:calc(21px * var(--scale));line-height:1.95;direction:rtl;text-align:right;margin:0;white-space:pre-line;max-width:66ch;justify-self:end}
+.notes{display:grid;gap:6px;max-width:66ch;width:100%;padding:12px 14px;border-radius:12px;background:var(--sunk);border:1px solid var(--rule);transition:border-color .2s,box-shadow .2s}
+.notes:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 18%,transparent)}
+.notes-h{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--gold);cursor:text}
+.notes-h svg{width:14px;height:14px}
+textarea.note{width:100%;min-height:64px;resize:none;border:0;outline:0;padding:0;background:transparent;color:var(--fg);font-family:var(--serif);font-size:calc(16px * var(--scale));line-height:1.6;unicode-bidi:plaintext}
+textarea.note::placeholder{color:var(--muted);font-style:italic}
+.note-st{font-size:11.5px;color:var(--muted);min-height:1.2em}
+.note-st.err{color:var(--c-a)}
+.has-note{display:inline-flex;align-items:center;gap:4px;color:var(--gold);font-weight:600}
+.has-note svg{width:13px;height:13px}
 .sep{height:1px;background:linear-gradient(90deg,transparent,var(--rule) 20%,var(--rule) 80%,transparent)}
 .foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
 .foot .ref{margin-inline-end:auto}
@@ -195,7 +205,7 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px;box-de
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--fg);color:var(--bg);font-size:13.5px;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 32px)}
 .toast button{border:0;background:transparent;color:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:0}
 
-dialog{border:1px solid var(--rule);border-radius:16px;background:var(--surface);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));box-shadow:0 30px 80px -20px rgb(0 0 0 / .45)}
+dialog{max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--rule);border-radius:16px;background:var(--surface);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));box-shadow:0 30px 80px -20px rgb(0 0 0 / .45)}
 dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
 .dlg{padding:20px;display:grid;gap:14px}
 .dlg h2{margin:0;font-family:var(--serif);font-weight:600;font-size:20px}
@@ -203,6 +213,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
 .dlg ol{padding-inline-start:20px;display:grid;gap:6px}
 .dlg .grp{display:grid;gap:8px}
 .dlg .lbl{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
 .dlg .actions{display:flex;justify-content:flex-end;gap:8px}
 .dlg .primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 
@@ -324,6 +335,12 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
         <button type="button" data-v="1.12" aria-pressed="false">Large</button>
         <button type="button" data-v="1.25" aria-pressed="false">Larger</button>
       </div>
+    </div>
+    <div class="grp">
+      <span class="lbl">My notes</span>
+      <p><span id="notes-count">No notes yet.</span> They are kept in this browser's storage and survive closing the app or restarting the device. Back them up to a file before clearing browser data or changing phones.</p>
+      <div class="row-btns"><button class="btn" type="button" id="notes-export">Export backup</button><button class="btn" type="button" id="notes-import">Import backup</button>
+      <input type="file" id="notes-file" accept="application/json,.json" hidden></div>
     </div>
     <div class="grp" id="offline-grp">
       <span class="lbl">Offline</span>

@@ -109,6 +109,86 @@
     return s;
   }
 
+  /* ---------- personal notes ----------
+     Kept in IndexedDB (durable, survives restarts) and mirrored to localStorage as a second copy.
+     On load the newer copy of each note wins. */
+  const notes = new Map(); // id -> { text, updated }
+  const NOTES_LS = 'ikmal-notes';
+  let idb = null;
+  function idbOpen() {
+    return new Promise((res) => {
+      try {
+        const r = indexedDB.open('ikmal', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('notes', { keyPath: 'id' });
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => res(null);
+        r.onblocked = () => res(null);
+      } catch (e) { res(null); }
+    });
+  }
+  function idbAll(db) {
+    return new Promise((res) => {
+      try {
+        const r = db.transaction('notes').objectStore('notes').getAll();
+        r.onsuccess = () => res(r.result || []); r.onerror = () => res([]);
+      } catch (e) { res([]); }
+    });
+  }
+  function idbPut(rec) {
+    if (!idb) return Promise.resolve(false);
+    return new Promise((res) => {
+      try {
+        const tx = idb.transaction('notes', 'readwrite');
+        const os = tx.objectStore('notes');
+        if (rec.text) os.put(rec); else os.delete(rec.id);
+        tx.oncomplete = () => res(true); tx.onerror = () => res(false); tx.onabort = () => res(false);
+      } catch (e) { res(false); }
+    });
+  }
+  function lsNotes() { try { return JSON.parse(localStorage.getItem(NOTES_LS) || '{}'); } catch (e) { return {}; } }
+  function lsWrite() {
+    try {
+      const o = {}; notes.forEach((v, k) => { o[k] = v; });
+      localStorage.setItem(NOTES_LS, JSON.stringify(o)); return true;
+    } catch (e) { return false; }
+  }
+  function mergeNote(id, rec) {
+    if (!rec || typeof rec.text !== 'string') return false;
+    const cur = notes.get(id);
+    if (cur && (cur.updated || 0) >= (rec.updated || 0)) return false;
+    if (rec.text.trim()) notes.set(id, { text: rec.text, updated: rec.updated || Date.now() });
+    else notes.delete(id);
+    return true;
+  }
+  async function loadNotes() {
+    const ls = lsNotes();
+    Object.keys(ls).forEach((k) => mergeNote(k, ls[k]));
+    if ('indexedDB' in window) {
+      idb = await idbOpen();
+      if (idb) {
+        const rows = await idbAll(idb);
+        rows.forEach((r) => mergeNote(r.id, r));
+        // make sure both copies hold everything
+        const have = new Set(rows.map((r) => r.id));
+        notes.forEach((v, k) => { if (!have.has(k)) idbPut({ id: k, text: v.text, updated: v.updated }); });
+      }
+    }
+    lsWrite();
+  }
+  let persistAsked = false;
+  async function askPersist() {
+    if (persistAsked) return; persistAsked = true;
+    try { if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) {}
+  }
+  async function saveNote(id, text) {
+    const rec = { id, text: text.replace(/\s+$/, ''), updated: Date.now() };
+    if (rec.text.trim()) notes.set(id, { text: rec.text, updated: rec.updated }); else notes.delete(id);
+    const a = await idbPut(rec), b = lsWrite();
+    askPersist();
+    updateNoteMarks(id);
+    return a || b;
+  }
+
   /* ---------- state ---------- */
   let DATA = [];
   let BYID = new Map();
@@ -159,6 +239,7 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(store.get('theme', 'system')));
 
   const langSeg = segInit($('lang'), 'l', st.lang, (v) => {
+    flushAll();
     st.lang = v; store.set('lang', v);
     list.querySelectorAll('li.open').forEach((li) => {
       const o = BYID.get(li.dataset.id);
@@ -235,7 +316,9 @@
       esc(lab) + '<span class="n">' + fmt(counts[k] || 0) + '</span></button>').join('') +
       '<button type="button" class="chip saved" data-k="saved" aria-pressed="' + (st.cat === 'saved') + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>' +
-      'Saved<span class="n" id="saved-n">' + st.saved.size + '</span></button>';
+      'Saved<span class="n" id="saved-n">' + st.saved.size + '</span></button>' +
+      '<button type="button" class="chip saved" data-k="notes" aria-pressed="' + (st.cat === 'notes') + '">' + ICON_NOTE +
+      'My notes<span class="n" id="notes-n">' + notes.size + '</span></button>';
     cats.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
       st.cat = b.dataset.k;
       cats.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
@@ -273,10 +356,16 @@
     const qe = num === null && /[a-zA-Zāīūḥṣḍṭẓ]/.test(raw) ? nEn(raw) : '';
     const deep = $('deep').checked;
     let hits = DATA.filter((o) =>
-      (st.cat === 'all' || (st.cat === 'saved' ? st.saved.has(o._id) : o.c === st.cat)) &&
+      (st.cat === 'all' || (st.cat === 'saved' ? st.saved.has(o._id) : st.cat === 'notes' ? notes.has(o._id) : o.c === st.cat)) &&
       (st.letter === 'all' || o.l === st.letter));
     if (raw) {
-      hits = hits.map((o) => [score(o, qa, qe, num, deep), o]).filter((x) => x[0] > 0)
+      const qn = num === null ? nEn(raw) : '', qna = num === null ? nAr(raw) : '';
+      const noteHit = (o) => {
+        const n = notes.get(o._id); if (!n) return 0;
+        const t = n.text;
+        return (qn && nEn(t).includes(qn)) || (qna && /[\u0621-\u064A]/.test(qna) && nAr(t).includes(qna)) ? 50 : 0;
+      };
+      hits = hits.map((o) => [Math.max(score(o, qa, qe, num, deep), noteHit(o)), o]).filter((x) => x[0] > 0)
         .sort((a, b) => b[0] - a[0] || a[1].n - b[1].n).map((x) => x[1]);
     }
     st.hits = hits; st.qe = qe; st.qa = qa;
@@ -285,6 +374,7 @@
 
   /* ---------- rendering ---------- */
   const ICON_STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+  const ICON_NOTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>';
   const ICON_CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
   const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
   const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>';
@@ -295,11 +385,33 @@
     const en = '<p class="en">' + hlEn(o.en, st.qe) + '</p>';
     const main = st.lang === 'ar' ? ar : st.lang === 'both' ? ar + '<div class="sep" aria-hidden="true"></div>' + en : en;
     const c = CAT[o.c];
-    return main + '<div class="foot"><span class="ref">Entry ' + esc(o._lab) + ' · ' + c[0] + ' · printed page ' + o.p + ' / <span lang="ar">ص ' + arNum(o.p) + '</span></span>' +
+    const n = notes.get(o._id);
+    const notesHtml = '<div class="notes"><label class="notes-h" for="note-' + o._id + '">' + ICON_NOTE + '<span>My notes</span></label>' +
+      '<textarea class="note" id="note-' + o._id + '" rows="2" dir="auto" placeholder="Write your own notes on this narrator. They stay on this device, even offline.">' + (n ? esc(n.text) : '') + '</textarea>' +
+      '<span class="note-st" aria-live="polite">' + (n ? 'Saved ' + when(n.updated) : '') + '</span></div>';
+    return main + notesHtml + '<div class="foot"><span class="ref">Entry ' + esc(o._lab) + ' · ' + c[0] + ' · printed page ' + o.p + ' / <span lang="ar">ص ' + arNum(o.p) + '</span></span>' +
       '<button class="btn" type="button" data-act="copy">' + ICON_COPY + '<span>Copy</span></button>' +
       (navigator.share ? '<button class="btn" type="button" data-act="share">' + ICON_SHARE + '<span>Share</span></button>' :
         '<button class="btn" type="button" data-act="link">' + ICON_LINK + '<span>Copy link</span></button>') + '</div>';
   }
+
+  function when(t) {
+    const d = new Date(t), now = new Date();
+    const same = d.toDateString() === now.toDateString();
+    return same ? 'today at ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'on ' + d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function updateNoteMarks(id) {
+    const li = document.getElementById('n' + id);
+    if (li) {
+      const tag = li.querySelector('.has-note');
+      if (notes.has(id) && !tag) li.querySelector('.tags').insertAdjacentHTML('beforeend', '<span class="has-note">' + ICON_NOTE + 'Note</span>');
+      if (!notes.has(id) && tag) tag.remove();
+    }
+    const c = $('notes-n'); if (c) c.textContent = notes.size;
+    const s = $('notes-count'); if (s) s.textContent = notesSummary();
+  }
+  function notesSummary() { return notes.size ? notes.size + (notes.size === 1 ? ' note' : ' notes') + ' saved on this device.' : 'No notes yet.'; }
+  function autosize(t) { t.style.height = 'auto'; t.style.height = Math.max(t.scrollHeight + 2, 64) + 'px'; }
 
   function rowHtml(o) {
     const c = CAT[o.c];
@@ -312,7 +424,8 @@
           '<button class="opener" type="button" aria-expanded="false" aria-controls="b' + id + '"><span class="ar-name" lang="ar">' + hlAr(o.ar, st.qa) + '</span></button>' +
           '<span class="ar-full" lang="ar">' + hlAr(o.full, st.qa) + '</span>' +
           '<span class="tags"><span class="cat ' + o.c + '">' + c[0] + '</span><span class="arx" lang="ar">' + c[1] + '</span>' +
-          (o.l ? '<span class="arx" lang="ar">حرف ' + o.l + '</span>' : '') + '</span>' +
+          (o.l ? '<span class="arx" lang="ar">حرف ' + o.l + '</span>' : '') +
+          (notes.has(id) ? '<span class="has-note">' + ICON_NOTE + 'Note</span>' : '') + '</span>' +
         '</div>' +
         '<div class="side"><button class="star" type="button" aria-pressed="' + saved + '" aria-label="' + (saved ? 'Remove from saved' : 'Save this narrator') + '">' + ICON_STAR + '</button>' + ICON_CHEV + '</div>' +
       '</div>' +
@@ -352,7 +465,9 @@
   function renderEmpty() {
     const acts = $('empty-actions'); acts.innerHTML = '';
     const raw = q.value.trim();
-    if (st.cat === 'saved' && !raw) {
+    if (st.cat === 'notes' && !raw) {
+      $('empty-t').textContent = 'No notes yet. Open any narrator and write in “My notes”. Notes stay on this device, even offline.';
+    } else if (st.cat === 'saved' && !raw) {
       $('empty-t').textContent = 'No saved narrators yet. Tap the star on any entry to keep it here, ready offline.';
     } else {
       $('empty-t').textContent = 'No narrator matches that search. Try fewer letters, drop the “ال”, or search inside the biographies.';
@@ -363,7 +478,37 @@
     if (canAnimate()) M.animate($('empty'), { opacity: [0, 1], y: [6, 0] }, { duration: 0.3, ease: EASE });
   }
 
+  const pending = new Map(); // id -> timer
+  function flushNote(t) {
+    const id = t.id.slice(5);
+    clearTimeout(pending.get(id)); pending.delete(id);
+    const cur = notes.get(id);
+    if ((cur ? cur.text : '') === t.value.replace(/\s+$/, '')) return;
+    const st2 = t.parentNode.querySelector('.note-st');
+    saveNote(id, t.value).then((ok) => {
+      if (!st2) return;
+      st2.textContent = ok ? (t.value.trim() ? 'Saved ' + when(Date.now()) : 'Note deleted') : 'Could not save. Storage may be full or blocked.';
+      st2.classList.toggle('err', !ok);
+      if (ok && canAnimate()) M.animate(st2, { opacity: [0.3, 1] }, { duration: 0.3 });
+    });
+  }
+  function flushAll() { document.querySelectorAll('textarea.note').forEach(flushNote); }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushAll(); });
+  window.addEventListener('pagehide', flushAll);
+
   function wireBody(li, o) {
+    const t = li.querySelector('textarea.note');
+    if (t) {
+      requestAnimationFrame(() => autosize(t));
+      t.addEventListener('click', (e) => e.stopPropagation());
+      t.addEventListener('input', () => {
+        autosize(t);
+        const st2 = t.parentNode.querySelector('.note-st'); st2.textContent = 'Saving…'; st2.classList.remove('err');
+        clearTimeout(pending.get(o._id));
+        pending.set(o._id, setTimeout(() => flushNote(t), 500));
+      });
+      t.addEventListener('blur', () => flushNote(t));
+    }
     li.querySelectorAll('.inner [data-act]').forEach((b) => b.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const act = b.dataset.act;
@@ -461,6 +606,8 @@
     const el = $('toast'), b = $('toast-b');
     $('toast-t').textContent = msg;
     b.hidden = !action; if (action) { b.textContent = action; b.onclick = () => { fn(); hideToast(); }; }
+    const host = document.querySelector('dialog[open]') || document.body;
+    if (el.parentNode !== host) { host.appendChild(el); el.hidden = true; }
     const was = !el.hidden;
     el.hidden = false;
     if (!was && canAnimate()) M.animate(el, { opacity: [0, 1], y: [14, 0], scale: [0.97, 1] }, { type: 'spring', stiffness: 420, damping: 30 });
@@ -634,6 +781,42 @@
   window.addEventListener('appinstalled', () => { installBtn.hidden = true; toast('Installed. Open it from your home screen.'); });
   if (standalone) $('offline-info').textContent = 'Installed on this device. The whole index, your saved narrators and settings work without a connection.';
 
+  /* ---------- notes backup ---------- */
+  $('notes-export').addEventListener('click', () => {
+    flushAll();
+    const o = {}; notes.forEach((v, k) => { const e = BYID.get(k); o[k] = { text: v.text, updated: v.updated, entry: e ? e._lab : k, name: e ? e.ar : '' }; });
+    const blob = new Blob([JSON.stringify({ app: 'al-ikmal-notes', version: 1, exported: new Date().toISOString(), notes: o }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'al-ikmal-notes-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Backup file created');
+  });
+  $('notes-import').addEventListener('click', () => $('notes-file').click());
+  $('notes-file').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+      const j = JSON.parse(await f.text());
+      if (!j || j.app !== 'al-ikmal-notes' || typeof j.notes !== 'object') throw new Error('format');
+      let n = 0;
+      for (const [k, v] of Object.entries(j.notes)) {
+        if (!BYID.has(k) || !mergeNote(k, v)) continue;
+        const cur = notes.get(k);
+        await idbPut(cur ? { id: k, text: cur.text, updated: cur.updated } : { id: k, text: '' });
+        n++;
+      }
+      lsWrite(); askPersist();
+      notes.forEach((_, k) => updateNoteMarks(k));
+      updateNoteMarks('');
+      run(false);
+      toast(n ? 'Restored ' + n + (n === 1 ? ' note' : ' notes') : 'Your notes were already up to date');
+    } catch (err) {
+      toast('That file is not an Al-Ikmāl notes backup.');
+    }
+  });
+
   /* ---------- boot ---------- */
   function prepare(raw) {
     DATA = raw;
@@ -662,10 +845,12 @@
   const ready = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 600))]) : Promise.resolve();
   ready.then(() => { langSeg.place(false); intro(); });
 
+  const notesReady = loadNotes().catch(() => {});
+  const go = (raw) => notesReady.then(() => { prepare(raw); const s = $('notes-count'); if (s) s.textContent = notesSummary(); });
   if (inlineData) {
-    prepare(JSON.parse($('data').textContent));
+    go(JSON.parse($('data').textContent));
   } else {
-    fetch('data/ikmal.json').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(prepare).catch(() => {
+    fetch('data/ikmal.json').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(go).catch(() => {
       $('empty').hidden = false;
       $('empty-t').textContent = 'The narrator list could not load. Check your connection and reload; after one successful visit it works offline.';
     });

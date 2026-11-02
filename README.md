@@ -16,6 +16,7 @@ An offline web app for the narrators of *Mishkāt al-Maṣābīḥ*, from al-Kha
 - Optional full-text search inside the biographies.
 - Filter by section (Companions, Successors, Women Companions, Women Successors, Imams of the Uṣūl) and by letter.
 - Read in English, Arabic, or both.
+- **My notes** under every narrator. Notes autosave as you type into IndexedDB, with a second copy in localStorage, so they survive closing the app, going offline and restarting the device. The **My notes** filter lists annotated narrators, search also matches your notes, and Settings has **Export backup** and **Import backup** (a JSON file) for moving notes to a new phone or keeping a safe copy.
 - Save narrators with the star. The **Saved** filter keeps them together on this device.
 - Reading settings: light, dark or system theme, and four text sizes.
 - Deep links: `…/#n433` opens entry 433. Copy, share, or copy a link to any entry.

@@ -1,6 +1,6 @@
 /* Offline cache for the Al-Ikmāl Narrator Index.
    Bump VERSION whenever any file below changes so visitors receive the update. */
-const VERSION = 'ikmal-v1.0.0';
+const VERSION = 'ikmal-v1.1.0';
 const ASSETS = [
   './',
   'index.html',
