@@ -1,10 +1,12 @@
 /* Offline cache for the Siyar reader.
    Bump VERSION whenever any app-shell file or the fact data changes. Volume text files live in a
    separate cache, served cache-first; on an update the stored volumes are carried over (the Arabic
-   text never changes with the app shell). */
-const VERSION = 'v1.0.0';
+   text never changes with the app shell). Bump TEXT_REV when the volume files themselves change:
+   stored volumes are then carried over only from caches of the same text revision. */
+const VERSION = 'v1.0.1';
+const TEXT_REV = 't2';
 const SHELL = 'siyar-' + VERSION;
-const VOLS = 'siyar-vols-' + VERSION;
+const VOLS = 'siyar-vols-' + TEXT_REV + '-' + VERSION;
 const ASSETS = [
   './', 'index.html', 'app.js', 'manifest.json',
   'vendor/motion-11.11.17.min.js',
@@ -26,7 +28,7 @@ self.addEventListener('activate', (e) => {
     const keys = await caches.keys();
     const newVols = await caches.open(VOLS);
     for (const k of keys) {
-      if (k.startsWith('siyar-vols-') && k !== VOLS) {
+      if (k.startsWith('siyar-vols-' + TEXT_REV + '-') && k !== VOLS) {
         const old = await caches.open(k);
         for (const req of await old.keys()) {
           if (!(await newVols.match(req))) { const r = await old.match(req); if (r) await newVols.put(req, r); }

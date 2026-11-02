@@ -16,6 +16,8 @@ OpenITI places PageVxxPyyy at the END of page yyy, so text before a marker is on
 """
 import json, re, sys, os, unicodedata
 from collections import defaultdict
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from reflow_siyar_text import reflow
 
 SRC, SIYAR, OUT, REP = sys.argv[1:5]
 os.makedirs(OUT, exist_ok=True); os.makedirs(REP, exist_ok=True)
@@ -93,7 +95,7 @@ for bi, b in enumerate(blocks):
         c = clean(t)
         if not c: continue
         paras.append(('§ ' + c) if kind == 'H' else c)
-    b['text'] = '\n'.join(paras)
+    b['text'] = reflow('\n'.join(paras))   # re-join sentences split at page breaks
     pages = [(int(a), int(c)) for a, c in re.findall(r'⟦(\d+):(\d+)⟧', b['text'])]
     b['last'] = pages[-1] if pages else (v, p)
     if b['kind'] == 'entry':

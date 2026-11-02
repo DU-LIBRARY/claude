@@ -82,4 +82,7 @@ A second offline app at `…/siyar/`, in the same format as the Ikmāl index. It
 - Rebuild: `python3 tools/build_siyar_full.py SOURCE.mARkdown siyar/data/siyar.json siyar/data/full REPORT_DIR`,
   then `python3 tools/verify_siyar_text.py SOURCE.mARkdown siyar/data/full` (checks every entry is verbatim).
 - `siyar/REVIEW.md` lists flagged matches and places where a fact file and the text may disagree. Nothing was changed.
-- After changing any file in `siyar/`, bump `VERSION` in `siyar/sw.js`.
+- Sentences the source splits at printed page breaks are re-joined into one paragraph (the page tag stays inline);
+  the build does this, and `python3 tools/reflow_siyar_text.py siyar/data/full` applies it to existing files.
+  Only line breaks change, so the verbatim check still holds.
+- After changing any file in `siyar/`, bump `VERSION` in `siyar/sw.js`; after changing the volume files, bump `TEXT_REV` too.
