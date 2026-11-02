@@ -70,3 +70,16 @@ One-time setup:
 
 The config values are not secret; the rules make sure each person can only read and write their own notes.
 Sync runs on the website app only. Google sign-in can't run from the single offline file or the claude.ai page.
+
+## Siyar Aʿlām al-Nubalāʾ (`siyar/`)
+
+A second offline app at `…/siyar/`, in the same format as the Ikmāl index. It holds all 5,948 Siyar fact files
+(`siyar/data/siyar.json`, unchanged) and, for each one, al-Dhahabī's full entry in Arabic.
+
+- Full text: OpenITI `0748Dhahabi.SiyarAclamNubala.Shamela0010906-ara1` (Muʾassasat al-Risālah edition, ed.
+  al-Arnaʾūṭ et al.), split by al-Dhahabī's entry numbers into `siyar/data/full/vol00.json` … `vol23.json`
+  (vol00 = the Sīrah and the Khulafāʾ). Only OpenITI markup is removed; `⟦vol:page⟧` page markers are kept.
+- Rebuild: `python3 tools/build_siyar_full.py SOURCE.mARkdown siyar/data/siyar.json siyar/data/full REPORT_DIR`,
+  then `python3 tools/verify_siyar_text.py SOURCE.mARkdown siyar/data/full` (checks every entry is verbatim).
+- `siyar/REVIEW.md` lists flagged matches and places where a fact file and the text may disagree. Nothing was changed.
+- After changing any file in `siyar/`, bump `VERSION` in `siyar/sw.js`.
