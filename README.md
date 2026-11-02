@@ -40,3 +40,14 @@ An offline web app for the narrators of *Mishkāt al-Maṣābīḥ*, from al-Kha
 The text, translation and original index design come from the shared *Al-Ikmāl Narrator Index* artifact. Source: the scanned edition of al-Ikmāl (based on the Pakistani printing of 1350 AH / 1931, collated with the al-Maktab al-Islāmī edition), pp. 5–132.
 
 Fonts: Amiri, Source Serif 4 and IBM Plex Sans (SIL Open Font License), bundled locally. Motion 11.11.17 (MIT), bundled in `app/vendor/`.
+
+## Syncing with the shared artifact
+
+When the original artifact is updated, save its page HTML and run:
+
+```
+python3 tools/sync_from_artifact.py path/to/artifact.html
+```
+
+It replaces `app/data/ikmal.json`, lists which entries were added, removed or changed, bumps the
+service-worker version and rebuilds the single file. Commit and push to `main`, and Pages redeploys.
