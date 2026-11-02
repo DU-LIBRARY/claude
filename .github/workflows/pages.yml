@@ -1,9 +1,9 @@
 name: Deploy app to GitHub Pages
 
+# Pages currently deploys from a branch, so this only runs by hand. If Settings -> Pages -> Source
+# is switched to "GitHub Actions", restore the push trigger:
+#   push: { branches: [main], paths: ['app/**'] }
 on:
-  push:
-    branches: [main]
-    paths: ['app/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
