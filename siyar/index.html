@@ -225,7 +225,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
 /* ---------- Siyar additions ---------- */
-.frow{display:grid;gap:3px;min-width:0}
+.frow{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;min-width:0}
 .flab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .cent-wrap{display:flex;gap:6px;align-items:center}
 .cent-wrap .row{flex:1;min-width:0}
@@ -265,7 +265,7 @@ dl.kv dd{margin:0;min-width:0}
 .sub{color:var(--muted);font-size:12.5px}
 .placebtn{font:inherit;font-weight:500;color:var(--accent);background:transparent;border:0;border-bottom:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);padding:0;cursor:pointer}
 .placebtn:hover{border-bottom-style:solid}
-.pl-ar{font-family:var(--ar);font-size:17px;margin-inline-start:6px;color:var(--muted)}
+.pl-ar{font-family:var(--ar);font-size:17px;margin-left:10px;color:var(--muted)}
 .ff h3{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:4px 0 0;font-weight:600}
 .ff h3 small{text-transform:none;letter-spacing:0;font-weight:400}
 .nlist{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
@@ -298,6 +298,7 @@ h4.sec{font-family:var(--ar);font-size:calc(23px * var(--scale));line-height:1.7
 .fe-err{color:var(--c-a);font-size:13.5px;display:grid;gap:8px;padding:10px 2px}
 .foot{padding-top:2px}
 
+dialog .toast{position:sticky;left:auto;right:auto;bottom:10px;margin:0 12px 12px;transform:none!important;max-width:none;width:auto}
 /* views */
 .view{min-height:60dvh}
 .navbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:8px;border-bottom:1px solid var(--rule)}
@@ -334,7 +335,7 @@ h4.sec{font-family:var(--ar);font-size:calc(23px * var(--scale));line-height:1.7
       </div>
     </div>
     <h1 class="title-ar" lang="ar" dir="rtl" id="t-ar">سير أعلام النبلاء</h1>
-    <p class="title-en" id="t-en">Siyar Aʿlām al-Nubalāʾ: al-Dhahabī's <i>Lives of the Noble Figures</i></p>
+    <p class="title-en" id="t-en">Siyar Aʿlām al-Nubalāʾ <i>(Lives of the Noble Figures)</i></p>
     <p class="meta" id="t-meta">By Shams al-Dīn al-Dhahabī (d. 748 AH). A fact file for every biography, and the full Arabic text of the Muʾassasat al-Risālah edition. Search in Arabic with or without vowel marks, in English transliteration, by entry number, or by printed page (12:345).</p>
     <ul class="facts" id="facts"></ul>
   </div>
