@@ -12,6 +12,10 @@ if parts: json.dump(out, open(outp, 'w', encoding='utf8'), ensure_ascii=False)
 G = load_glossary()
 canon = {g['ar']: g for g in G}
 newt = {a: e for a, e in out.get('__new_terms__', [])}
+VAR = {}
+for g in G:
+    for v in g['var']:
+        if v != g['ar'] and v not in canon: VAR[v] = g['ar']
 errs, warns = [], []
 def E(k, m): errs.append(f'ERROR [{k}] {m}')
 def W(k, m): warns.append(f'WARN  [{k}] {m}')
@@ -71,7 +75,9 @@ for k in src:
             if re.search('[A-Za-z]', inner): continue          # mixed, not a pure bracket
             brs.append((m.start(), m.group(0), inner))
         for _, whole, inner in brs:
-            if inner in canon or inner in newt: continue
+            if inner in canon: continue
+            if inner in VAR: E(tag, f'non-canonical bracket {whole}; use ({VAR[inner]}) with the glossary English'); continue
+            if inner in newt: continue
             if norm(inner) in na: continue                  # verbatim from source (sigla etc.)
             E(tag, f'bracketed Arabic not in glossary: {whole}')
         brspans = [(st, st + len(w)) for st, w, _ in brs]
