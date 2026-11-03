@@ -10,6 +10,7 @@ You are translating al-Dhahabī's *Siyar Aʿlām al-Nubalāʾ* (biographies) int
 
 ## Terminology (most important)
 - `GLOSSARY.tsv` lists every technical term. At EVERY occurrence, write the glossary English followed by the canonical Arabic in brackets: `reliable (ثقة)`, `the Imam (الإمام)`, `hadith scholar (المحدث)`. The bracket always contains the canonical Arabic exactly as in column 1, never the inflected form from the source. Match inflected/plural/prefixed forms (listed variants and any other morphology) to the same rendering, singular or plural as the sentence needs (`hadith scholars (المحدث)`).
+- Terms inside a verbatim Arabic list/chain stay Arabic and need no bracket. A glossary word used as a book title or in an ordinary sense (e.g. ثقة meaning “reliance” in a seal inscription, كلام الله, قدر) is translated naturally and not bracketed.
 - Use the glossary term only when the word is used as a technical term. Do not bracket the same word inside a personal name (al-Ḥasan, Ṣāliḥ, ʿAlī, Thiqah…), or in its ordinary sense.
 - Bracket technical terms only. Never bracket names, places, ordinary words, or anything not in the glossary, unless you hit a genuinely technical term that is missing from the glossary. In that case use a consistent plain English rendering with the Arabic in brackets, and record it in `new_terms` (see below). Do this sparingly.
 - Do not add explanatory glosses, footnotes or your own commentary. Translate; do not interpret.
@@ -21,7 +22,7 @@ You are translating al-Dhahabī's *Siyar Aʿlām al-Nubalāʾ* (biographies) int
 - Names and nisbas are never translated or bracketed. The kunyah/lineage in the opening lines is transliterated too.
 - Well-known places use their usual English forms: Mecca, Medina, Basra, Kufa, Baghdad, Damascus, Cairo, Egypt, Syria (for al-Shām), Iraq, Khurasan, Nishapur, Jerusalem, Wasit, Isfahan, Harran, Mosul, Aleppo, Yemen, the Hijaz, Andalusia. Others: transliterate.
 - Dates: Hijri, in digits: `in 42 AH`, `in the year 130 AH`, `some years after 90 AH` for `نيف وتسعين`: translate the wording faithfully, digits for the number. Where only the tens/units are given without hundreds, keep as given (`in the year 42`). Months: Muḥarram, Ṣafar, Rabīʿ al-Awwal, Rabīʿ al-Ākhir, Jumādā al-Ūlā, Jumādā al-Ākhirah, Rajab, Shaʿbān, Ramaḍān, Shawwāl, Dhū al-Qaʿdah, Dhū al-Ḥijjah. Ages: `aged 70`.
-- Praise formulas: `صلى الله عليه وسلم` → ﷺ ; `رضي الله عنه` → (may Allah be pleased with him) (her / them / both of them as needed); `رحمه الله` → (may Allah have mercy on him); `تعالى` after Allah → (Exalted is He) only if present in the source. Allah = Allah.
+- Praise formulas: `صلى الله عليه وسلم` → ﷺ ; `رضي الله عنه` → (may Allah be pleased with him) (her / them / both of them as needed); `رحمه الله` → (may Allah have mercy on him); `تعالى` after Allah → `Allah the Exalted` (only if present in the source; never use dashes or parentheses for it). Allah = Allah.
 - `قلت:` is al-Dhahabī’s own voice: always `I say:`.
 - `قال/وقال/روى X` → `X said` / `X narrated`; `سمعت` → `I heard`; `حدثنا/أخبرنا` inside prose → `X narrated to us` / `X informed us`.
 

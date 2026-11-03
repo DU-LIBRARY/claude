@@ -87,7 +87,9 @@ for k in src:
         # glossary coverage (advisory)
         have = {inner for _, _, inner in brs}
         for g, rx in GR:
+            if g['ar'] in ('السنة', 'الحسن'): continue   # collide with 'year' / the name al-Ḥasan; checked only when bracketed
             if rx.search(na) and g['ar'] not in have and not any(norm(x) == norm(g['ar']) for x in have):
+                if rx.search(norm(re.sub(r'\([^()]*[A-Za-z][^()]*\)', '', b))): continue   # term kept verbatim in an Arabic chain/list
                 W(tag, f'source has «{g["ar"]}» ({g["en"]}) but output has no bracket for it')
         # untranslated / omitted
         lat = len(re.findall(r'[A-Za-z]', b)); arw = len(re.findall(r'[%s]+' % AR, a))
@@ -98,7 +100,7 @@ for k in src:
     if al > 400 and tl < 0.15 * al: W(k, f'English looks short ({tl} latin vs {al} arabic letters): possible omission, or mostly chains')
 for k in out:
     if k not in src and k != '__new_terms__': E(k, 'extra key')
-for m in errs[:60]: print(m)
-for m in warns[:40]: print(m)
+for m in errs[:(10**6 if "--all" in sys.argv else 60)]: print(m)
+for m in warns[:(10**6 if "--all" in sys.argv else 40)]: print(m)
 print(f'{pid}: {len(src)} entries; {len(errs)} errors; {len(warns)} warnings' + (' (showing first 60/40)' if len(errs) > 60 or len(warns) > 40 else ''))
 sys.exit(1 if errs else 0)
