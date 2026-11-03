@@ -47,8 +47,9 @@ for k in src:
         pass
     # heading
     sh, oh = s['h'], o['h']
-    m1 = re.match(r'^(\d+) - ', sh); m2 = re.match(r'^(\d+) - ', oh)
-    if not m1 or not m2 or m1.group(1) != m2.group(1): E(k, f'heading number/separator: {oh!r}')
+    m1 = re.match(r'^(\d+)(?= |$)', sh); m2 = re.match(r'^(\d+)(?= |$)', oh)
+    if m1 and (not m2 or m1.group(1) != m2.group(1)): E(k, f'heading number missing/changed: {oh!r}')
+    if ' - ' in sh[:12] and ' - ' not in oh[:14] : E(k, f'heading separator lost: {oh!r}')
     if sh.count('*') != oh.count('*'): E(k, 'heading asterisks differ')
     g1 = re.findall(r'\(([^()]*)\)\s*$', sh); g2 = re.findall(r'\(([^()]*)\)\s*$', oh)
     if g1 != g2: E(k, f'heading grading letters differ: src {g1} out {g2}')
