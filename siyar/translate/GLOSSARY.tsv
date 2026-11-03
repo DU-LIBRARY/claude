@@ -1,0 +1,118 @@
+# Arabic (bracket shows exactly this form)	English	variants (| separated)	note (never printed)
+# RULE: at EVERY occurrence write  English (Arabic) , e.g.  reliable (ثقة) . Only terms listed here, plus new terms per PROMPT.md.
+الإمام	the Imam	إمام|الأئمة|الإمام	
+شيخ الإسلام	Shaykh al-Islām		
+القدوة	the exemplar		
+الحافظ	the hadith master	حافظ|الحفاظ|حفاظ	
+الحجة	the authority	حجة	as a scholar rank
+المحدث	hadith scholar	محدث|محدثا|المحدثين|محدثين	
+الفقيه	jurist	فقيه|الفقهاء|فقهاء	
+المفتي	mufti	مفتي	
+القاضي	judge	قاضي|قاضيا	
+المقرئ	Qurʾān reciter	مقرئ	
+القارئ	reciter	قارئ|القراء	
+المفسر	exegete	مفسر	
+المجتهد	mujtahid	مجتهد	scholar capable of independent legal reasoning
+الزاهد	ascetic	زاهد|الزهاد	
+العابد	devout worshipper	عابد|العباد	
+الصوفي	Sufi	صوفي|الصوفية	
+الواعظ	preacher	واعظ	
+الأديب	man of letters	أديب	
+النحوي	grammarian	نحوي	
+أمير المؤمنين	Commander of the Faithful		
+المحتسب	market inspector	محتسب	
+الصحابي	Companion	صحابي|الصحابة|صحابة	
+التابعي	Successor	تابعي|التابعين|تابعين	
+أتباع التابعين	Successors of the Successors	تابع التابعين|أتباع التابعين	
+المخضرم	mukhaḍram	مخضرم	lived in both the Jāhiliyyah and Islam
+الجاهلية	the Jāhiliyyah		pre-Islamic era
+الخلفاء الراشدين	the Rightly Guided Caliphs	الخلفاء الراشدون	
+البدري	Badrī	بدري|البدريين|بدريا	veteran of the Battle of Badr
+العشرة المبشرة	the Ten Promised Paradise	العشرة المبشرين بالجنة	
+الجرح والتعديل	narrator criticism		
+ثقة	reliable	ثقة|ثقات|الثقات	
+ثبت	firmly reliable	ثبت|الثبت	
+صدوق	truthful	صدوق	
+صالح الحديث	acceptable in hadith		
+لا بأس به	no harm in him	ليس به بأس	
+لين الحديث	soft in hadith	لين	
+ضعيف	weak	ضعيف|ضعفاء|الضعفاء|ضعفه|ضعفوه	
+متروك	abandoned	متروك|متروكا	
+منكر الحديث	rejected in hadith	منكر	
+مجهول	unknown	مجهول|المجهول	
+كذاب	liar	كذاب|كذب	
+وضاع	fabricator	وضاع|الوضاع	
+سيئ الحفظ	poor in memory	سيء الحفظ	
+يهم	prone to error	وهم|الوهم	
+يحتج به	used as proof	لا يحتج به	negated form: "not used as proof"
+متروك الحديث	abandoned in hadith		
+الإسناد	chain of transmission	إسناد|السند|أسانيد	
+السماع	direct hearing	سماع	transliteration: samāʿ
+الإجازة	licence to transmit	إجازة	transliteration: ijāzah
+المناولة	handing over of a text	مناولة	transliteration: munāwalah
+الوجادة	finding of a text	وجادة	transliteration: wijādah
+التدليس	tadlīs	تدليس|مدلس|المدلس	concealing the source of a report
+مرسل	mursal	المراسيل|مراسيل|مرسل	a report a Successor attributes directly to the Prophet ﷺ
+المرفوع	raised	مرفوع|مرفوعا	attributed to the Prophet ﷺ
+الموقوف	halted	موقوف|موقوفا	attributed to a Companion
+المقطوع	severed	مقطوع	attributed to a Successor
+المتفق عليه	agreed upon	متفق عليه	i.e. by al-Bukhārī and Muslim
+الصحيح	authentic	صحيح|صحيحا|صحيحة	
+الحسن	sound		only as a hadith grade, never in the name al-Ḥasan
+الغريب	gharīb	غريب|غرائب|غرائبه	isolated report
+الشاذ	anomalous	شاذ|شواذ	
+المنكر	rejected	منكر|مناكير	
+المتواتر	mass-transmitted	متواتر|متواترا	
+المشهور	well known		transliteration: mashhūr
+الموضوع	fabricated	موضوع|موضوعا|موضوعات	
+المعلل	muʿall	علة|العلل|معلل	defective report
+المتابعة	corroboration	متابع|متابعة	
+الشاهد	supporting report	شاهد	
+العالي	elevated chain	عالي الإسناد|علو الإسناد	
+الصحيحين	the two Ṣaḥīḥs	الصحيحان	
+الكتب الستة	the Six Books	الأصول الستة|الستة	
+السنن	the Sunan collections	السنن	
+الجزء	hadith fascicle	جزء	transliteration: juzʾ
+الرحلة	journey in search of hadith	رحلة|رحل|رحلته	transliteration: riḥlah
+الأمالي	dictation sessions	إملاء|أمالي	transliteration: amālī
+الطبقة	generation-level	طبقة|طبقات	transliteration: ṭabaqah
+القراءات	recitation traditions	قراءة|قراءات	transliteration: qirāʾāt
+القراءات السبع	the Seven Readings		
+التجويد	tajwīd	تجويد	rules of recitation
+التفسير	exegesis	تفسير	transliteration: tafsīr
+الفقه	jurisprudence	فقه	transliteration: fiqh
+الفتوى	legal opinion	فتوى|فتيا	transliteration: fatwā
+الاجتهاد	independent legal reasoning	اجتهاد	transliteration: ijtihād
+التقليد	adherence to a school	تقليد	transliteration: taqlīd
+الإجماع	consensus	إجماع	transliteration: ijmāʿ
+القياس	analogical reasoning	قياس	transliteration: qiyās
+الرأي	personal opinion	رأي|أصحاب الرأي	transliteration: raʾy
+أصول الفقه	principles of jurisprudence		
+الخلاف	juristic disagreement	خلاف	
+الحدود	fixed penalties	حد|الحد	transliteration: ḥudūd
+الحسبة	market supervision		transliteration: ḥisbah
+العقيدة	creed	عقيدة	
+السنة	the Sunnah		only in the sense of the Prophetic way/creed; NEVER for سنة meaning "year"
+أهل السنة	the Ahl al-Sunnah	أهل السنة والجماعة	
+البدعة	innovation	بدعة|مبتدع|مبتدعا	transliteration: bidʿah
+القدرية	Qadariyyah	قدري|القدر	
+المرجئة	Murjiʾah	مرجئ|المرجئ	
+الخوارج	Khawārij	خارجي|الخوارج	
+الرافضة	Rāfiḍah	رافضي	
+المعتزلة	Muʿtazilah	معتزلي	
+الجهمية	Jahmiyyah	جهمي	
+الناصبة	Nawāṣib	ناصبي	
+النصب	enmity toward the family of ʿAlī		transliteration: naṣb
+خلق القرآن	the creation of the Qurʾān		
+المحنة	the Inquisition		transliteration: miḥnah
+الغلو	extremism		transliteration: ghuluww
+المولى	client	مولى|موالي	mawlā, freed or affiliated
+الرباط	frontier garrison duty	رباط	transliteration: ribāṭ
+الدية	blood-money	دية	transliteration: diyah
+الكنية	patronymic	كنية	transliteration: kunyah
+الوقف	endowment	وقف|الأوقاف	transliteration: waqf
+الخانقاه	Sufi lodge		transliteration: khānqāh
+المسند	musnid	مسند الوقت|مسند	musnid: transmitter with high chains; the book title Musnad stays as the title
+الشيعة	Shīʿah	شيعي|تشيع	
+الكلام	speculative theology	علم الكلام	kalām
+التصوف	Sufism	تصوف	
