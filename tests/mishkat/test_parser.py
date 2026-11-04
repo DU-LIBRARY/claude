@@ -41,7 +41,7 @@ def nows(s):
     return WS.sub('', s)
 
 
-FIXTURES = [FIXTURE, HERE / 'fixtures' / 'nikah-artifact-1793793535-584e.html', HERE / 'fixtures' / 'nikah-artifact-1793794906-a9c8.html', HERE / 'fixtures' / 'nikah-artifact-1793795151-be3b.html']
+FIXTURES = [FIXTURE, HERE / 'fixtures' / 'nikah-artifact-1793793535-584e.html', HERE / 'fixtures' / 'nikah-artifact-latest.html']  # latest: replaced on every sync
 HTML = FIXTURE.read_text(encoding='utf-8')
 BOOK, SECTIONS, FOOTER, TITLE, GAPS, PAGE = sync.parse_page(HTML)
 FASL_EN = {'الفصل الأول': 'al-Faṣl al-Awwal', 'الفصل الثاني': 'al-Faṣl al-Thānī', 'الفصل الثالث': 'al-Faṣl al-Thālith'}
