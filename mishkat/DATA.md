@@ -20,7 +20,7 @@ ever inserted with `innerHTML`.
   },
   "books": [
     { "id": "nikah", "file": "nikah.json", "ar": "كتاب النكاح", "en": "Kitāb al-Nikāḥ",
-      "first": 3080, "last": 3092, "count": 14,          // count includes the intro section
+      "first": 3080, "last": 3100, "count": 23,          // count includes the intro and bāb openings
       "source": { /* same shape as meta.source: the artifact this book was last synced from */ },
       "footer": [ /* segments: that artifact's closing note */ ] }
   ],                                         // sorted by first hadeeth number
@@ -37,13 +37,17 @@ ever inserted with `innerHTML`.
 ```json
 {
   "id": "h3080",                 // unique across ALL books: "h<n>" for a hadeeth (Mishkāt numbers are
-                                 // global); any other section is "<book>-<artifact id>", e.g. "nikah-intro"
+                                 // global); any other section is "<book>-<artifact id>", e.g. "nikah-intro", "nikah-b1"
   "srcId": "h3080",              // the artifact's own section id, for traceability ("intro" for nikah-intro)
-  "kind": "hadeeth",             // "hadeeth" | "intro"
+  "kind": "hadeeth",             // "hadeeth" | "intro" (book opening) | "bab" (a bāb's opening, srcId "b<k>")
   "book": "nikah",
-  "bab": null,                   // { "ar": "…", "en": null } once the page carries bāb headings (en null until known)
-  "fasl": { "n": 1, "ar": "الفصل الأول", "en": "al-Faṣl al-Awwal" },  // null for intro
-  "n": 3080,                     // null for intro
+  "bab": null,                   // { "n": 1, "ar": "باب النظر إلى المخطوبة وبيان العورات", "en": null } for
+                                 // sections after a "(N) باب …" heading (and its "bab" opening); null before
+                                 // the first one (the book's opening bāb is unnamed in the page) and for intro
+  "fasl": { "n": 1, "ar": "الفصل الأول", "en": "al-Faṣl al-Awwal" },  // null for intro and bab sections;
+                                 // n 1/2/3… = al-Faṣl al-Awwal/al-Thānī/al-Thālith…; a bāb heading resets it
+                                 // and the faṣl headings after it apply within that bāb
+  "n": 3080,                     // null for intro and bab sections
   "label": "Hadeeth 3080 · al-Faṣl al-Awwal",   // the .num line as printed
   "matn": [ /* segments */ ],    // includes { "t": "[خ: ٥٠٦٦، م: ١٤٠٠]", "ref": true } runs
   "grading": [ "[٣٠٩٢] ضعيف لإرساله." ],      // every grading line found under any commentary (may be empty)
@@ -93,6 +97,10 @@ exactly as the artifact shows it, after whitespace runs collapse to one space.
 - Text never contains bidi embedding/override/isolate controls (U+202A–202E, U+2066–2069): the sync
   rejects them. The marks U+200E, U+200F (used around "/" in references) and U+061C may appear.
 - `changelog[].book` (the book that sync touched) and optional `changelog[].footer: true`.
-- `bab.en` may be `null`. Note the artifact's `<h2 class="bab">` currently carries faṣl headings
-  (الفصل الثاني), which set `fasl`, not `bab`.
+- `bab` is `{ n, ar, en }`; `en` is `null` until known. The artifact's `<h2 class="bab">` carries both
+  faṣl headings (الفصل الأول / الثاني / الثالث → set `fasl`) and bāb headings `(N) باب …` (→ set
+  `bab`, reset `fasl` to null). Any other heading text aborts the sync.
+- `kind: "bab"`: a bāb's opening (srcId `b<k>`, id `<book>-b<k>`, label "Opening of Bāb k", matn = the
+  bāb title, three commentaries; `n` and `fasl` null, `bab` set). Its footnotes are namespaced like
+  the intro's (`n-b1-L-1` → `n-nikah-b1-L-1`). It must follow its own `(k) باب …` heading.
 - A footnote can only be referenced from `paras` (never from matn, editorial, refs or other footnotes).

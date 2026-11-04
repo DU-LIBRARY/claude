@@ -2,7 +2,9 @@
 
 Run: python3 -m unittest discover -s tests/mishkat -p 'test_*.py'
 
-The fixture is a saved copy of the Kitāb al-Nikāḥ artifact page (override with $MISHKAT_ARTIFACT).
+Fixtures are saved copies of the Kitāb al-Nikāḥ artifact page: version 1793730765-58e3 (intro +
+3080–3092; override with $MISHKAT_ARTIFACT) and 1793793535-584e (adds faṣl 3, bāb 1 and 3093–3100).
+The tool-run tests use the first one.
 The round-trip tests extract the page independently with BeautifulSoup (test-only dependency; they
 are skipped if bs4 is missing) and compare it with text re-rendered from the parser's JSON segments.
 """
@@ -39,37 +41,74 @@ def nows(s):
     return WS.sub('', s)
 
 
+FIXTURES = [FIXTURE, HERE / 'fixtures' / 'nikah-artifact-1793793535-584e.html']
 HTML = FIXTURE.read_text(encoding='utf-8')
 BOOK, SECTIONS, FOOTER, TITLE, GAPS, PAGE = sync.parse_page(HTML)
+FASL_EN = {'الفصل الأول': 'al-Faṣl al-Awwal', 'الفصل الثاني': 'al-Faṣl al-Thānī', 'الفصل الثالث': 'al-Faṣl al-Thālith'}
+ORD = {'الأول': 1, 'الثاني': 2, 'الثالث': 3}
+AR_DIGITS = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
 
 
-@unittest.skipUnless(BeautifulSoup, 'bs4 not installed (test-only dependency)')
-class RoundTrip(unittest.TestCase):
+class RoundTripBase:
+    """Mixed into one TestCase per fixture; everything is derived from the page, not hard-coded."""
+    path = None
+
     @classmethod
     def setUpClass(cls):
-        cls.soup = BeautifulSoup(HTML, 'html.parser')
+        cls.html = cls.path.read_text(encoding='utf-8')
+        cls.book, cls.sections, cls.footer, cls.title, cls.gaps, cls.page = sync.parse_page(cls.html)
+        cls.soup = BeautifulSoup(cls.html, 'html.parser')
         cls.secs = cls.soup.select('section.h')
-        cls.by_id = {s['srcId']: s for s in SECTIONS}           # keyed by the page's own ids
+        cls.by_id = {s['srcId']: s for s in cls.sections}       # keyed by the page's own ids
 
     def test_sections_and_book(self):
-        self.assertEqual([s['id'] for s in self.secs], [s['srcId'] for s in SECTIONS])
-        # hadeeth ids are global ("h<n>"); the opening is namespaced by book
-        self.assertEqual([s['id'] for s in SECTIONS],
-                         ['nikah-intro'] + [f'h{n}' for n in range(3080, 3093)])
-        self.assertEqual(len(SECTIONS), 14)
-        self.assertEqual((SECTIONS[0]['id'], SECTIONS[0]['srcId']), ('nikah-intro', 'intro'))
-        self.assertEqual([s['n'] for s in SECTIONS[1:]], list(range(3080, 3093)))
-        self.assertEqual(BOOK['id'], 'nikah')
-        self.assertEqual((BOOK['first'], BOOK['last'], BOOK['count']), (3080, 3092, 14))
-        self.assertEqual(GAPS, [])
-        self.assertEqual(PAGE.warnings, [])
-
-    def test_fasl_carried_forward(self):
-        for s in SECTIONS:
-            if s['n'] is None:
-                self.assertIsNone(s['fasl'])
+        self.assertEqual([s['id'] for s in self.secs], [s['srcId'] for s in self.sections])
+        # hadeeth ids are global ("h<n>"); every other section is namespaced by book
+        for page_sec, s in zip(self.secs, self.sections):
+            pid = page_sec['id']
+            if re.fullmatch(r'h\d+', pid):
+                self.assertEqual((s['id'], s['kind'], s['n']), (pid, 'hadeeth', int(pid[1:])))
             else:
-                self.assertEqual(s['fasl']['n'], 1 if s['n'] < 3089 else 2, s['id'])
+                self.assertEqual(s['id'], 'nikah-' + pid)
+                self.assertIsNone(s['n'])
+                self.assertEqual(s['kind'], 'intro' if pid == 'intro' else 'bab')
+        self.assertEqual((self.sections[0]['id'], self.sections[0]['srcId']), ('nikah-intro', 'intro'))
+        nums = [int(x['id'][1:]) for x in self.secs if re.fullmatch(r'h\d+', x['id'])]
+        self.assertEqual(nums, list(range(nums[0], nums[-1] + 1)))
+        self.assertEqual(self.book['id'], 'nikah')
+        self.assertEqual((self.book['first'], self.book['last'], self.book['count']),
+                         (nums[0], nums[-1], len(self.secs)))
+        m = re.search(r'Up to hadeeth (\d+)', self.soup.select_one('p.sub').get_text())
+        self.assertEqual(int(m[1]), nums[-1])
+        self.assertEqual(self.gaps, [])
+        self.assertEqual(self.page.warnings, [])
+
+    def test_bab_and_fasl_assignment(self):
+        """Independent walk of the page: h2 headings set faṣl or bāb, labels may name the faṣl."""
+        fasl, bab = None, None
+        wrap = self.soup.select_one('div.wrap')
+        for el in wrap.find_all(['h2', 'section'], recursive=False):
+            if el.name == 'h2':
+                t = norm(el.get_text())
+                m = re.match(r'^\((\S+)\) (باب .+)$', t)
+                if m:
+                    bab, fasl = {'n': int(m[1].translate(AR_DIGITS)), 'ar': m[2], 'en': None}, None
+                else:
+                    self.assertIn(t, FASL_EN)
+                    fasl = ORD[t.split()[1]]
+                continue
+            s = self.by_id[el['id']]
+            label = norm(el.select_one('p.num').get_text())
+            lm = re.search(r'· (al-Faṣl .+)$', label)
+            if lm:
+                fasl = {v: ORD[k.split()[1]] for k, v in FASL_EN.items()}[lm[1]]
+            self.assertEqual(s['bab'], bab, s['id'])
+            if s['kind'] == 'hadeeth':
+                self.assertIsNotNone(fasl, s['id'])
+                self.assertEqual(s['fasl']['n'], fasl, s['id'])
+                self.assertEqual(s['fasl']['en'], list(FASL_EN.values())[fasl - 1])
+            else:
+                self.assertIsNone(s['fasl'], s['id'])
         self.assertEqual(self.by_id['h3080']['label'], 'Hadeeth 3080 · al-Faṣl al-Awwal')
         self.assertEqual(self.by_id['h3089']['fasl']['ar'], 'الفصل الثاني')
 
@@ -150,22 +189,30 @@ class RoundTrip(unittest.TestCase):
         self.assertEqual(totals['sup'], len(self.soup.select('sup.fn')))
         self.assertEqual(totals['li'], len(self.soup.select('aside.notes li')))
         self.assertEqual(totals['sup'], totals['fn'])
-        self.assertGreater(totals['fn'], 40)
-        self.assertGreater(totals['b'], 100)
+        self.assertEqual(totals['fn'], sum(len(c['footnotes']) for s in self.sections
+                                           for c in s['commentaries']))
+        self.assertGreater(totals['fn'], 0)
+        self.assertGreater(totals['b'], 0)
 
     def test_grading_lines(self):
         page_grades = [norm(p.get_text()) for p in self.soup.select('p.ref')
                        if re.match(r'^\[[٠-٩]+\]', norm(p.get_text()))]
-        self.assertEqual(len(page_grades), 4)
-        self.assertEqual(page_grades, [g for s in SECTIONS for g in s['grading']])
+        self.assertTrue(page_grades)
+        self.assertEqual(page_grades, [g for s in self.sections for g in s['grading']])
+        # each grading sits under the section whose number it names
+        for sec in self.secs:
+            for p in sec.select('p.ref'):
+                t = norm(p.get_text())
+                if re.match(r'^\[[٠-٩]+\]', t):
+                    self.assertIn(t, self.by_id[sec['id']]['grading'])
         self.assertEqual(self.by_id['h3092']['grading'], ['[٣٠٩٢] ضعيف لإرساله.'])
         self.assertEqual(self.by_id['h3089']['grading'], ['[٣٠٨٩] قال الشيخ: وإسناده صحيح.'])
-        total_refs = sum(len(c['refs']) for s in SECTIONS for c in s['commentaries'])
+        total_refs = sum(len(c['refs']) for s in self.sections for c in s['commentaries'])
         self.assertEqual(total_refs, len(self.soup.select('p.ref')))
 
     def test_footer_and_title(self):
-        self.assertEqual(text(FOOTER), norm(self.soup.footer.get_text()))
-        self.assertEqual(TITLE, 'Mishkāt Kitāb al-Nikāḥ')
+        self.assertEqual(text(self.footer), norm(self.soup.footer.get_text()))
+        self.assertEqual(self.title, 'Mishkāt Kitāb al-Nikāḥ')
 
     def test_segments_well_formed(self):
         def check(runs):
@@ -177,11 +224,48 @@ class RoundTrip(unittest.TestCase):
                     self.assertTrue(r['t'])
                     self.assertNotIn('  ', r['t'])
                     self.assertNotIn('<', r['t'])
-        for s in SECTIONS:
+        for s in self.sections:
             check(s['matn'])
             for c in s['commentaries']:
                 for p in c['paras'] + c['editorial'] + c['refs'] + [f['body'] for f in c['footnotes']]:
                     check(p)
+
+
+@unittest.skipUnless(BeautifulSoup, 'bs4 not installed (test-only dependency)')
+class RoundTripFirstPage(RoundTripBase, unittest.TestCase):
+    path = FIXTURES[0]
+
+
+@unittest.skipUnless(BeautifulSoup, 'bs4 not installed (test-only dependency)')
+class RoundTripSecondPage(RoundTripBase, unittest.TestCase):
+    path = FIXTURES[1]
+
+    def test_bab_one_and_third_fasl(self):
+        b = self.by_id
+        for n in range(3093, 3098):
+            self.assertEqual(b[f'h{n}']['fasl']['n'], 3, n)
+            self.assertEqual(b[f'h{n}']['fasl']['en'], 'al-Faṣl al-Thālith')
+            self.assertIsNone(b[f'h{n}']['bab'], n)
+        bab = {'n': 1, 'ar': 'باب النظر إلى المخطوبة وبيان العورات', 'en': None}
+        s = b['b1']
+        self.assertEqual((s['id'], s['srcId'], s['kind'], s['n'], s['fasl']), ('nikah-b1', 'b1', 'bab', None, None))
+        self.assertEqual(s['bab'], bab)
+        self.assertEqual(s['label'], 'Opening of Bāb 1')
+        self.assertEqual(text(s['matn']), bab['ar'])
+        self.assertEqual([f['id'] for c in s['commentaries'] for f in c['footnotes']], ['n-nikah-b1-L-1'])
+        self.assertEqual([r['fn'] for c in s['commentaries'] for p in c['paras'] for r in p if 'fn' in r],
+                         ['n-nikah-b1-L-1'])
+        for n in (3098, 3099, 3100):
+            self.assertEqual(b[f'h{n}']['bab'], bab, n)
+            self.assertEqual(b[f'h{n}']['fasl']['n'], 1, n)
+        self.assertIsNone(b['h3092']['bab'])
+        self.assertEqual([x['id'] for x in self.sections][-4:], ['nikah-b1', 'h3098', 'h3099', 'h3100'])
+
+    def test_first_page_sections_unchanged(self):
+        """The new page only appends: every section of the earlier page is identical in it."""
+        mine = {s['id']: s for s in self.sections}
+        for s in SECTIONS:
+            self.assertEqual(mine[s['id']], s, s['id'])
 
 
 def snapshot(root):
@@ -397,6 +481,26 @@ class ToolRuns(unittest.TestCase):
         for cp in [*range(0x610, 0x61B), *range(0x64B, 0x660), 0x670, *range(0x6D6, 0x6EE), 0x640]:
             self.assertEqual(sync.TASHKEEL.sub('', 'ك' + chr(cp) + 'ت'), 'كت', hex(cp))
         self.assertEqual(sync.TASHKEEL.sub('', 'كِتَابُ النِّكَاحِ'), 'كتاب النكاح')
+
+    def test_update_to_second_page(self):
+        self.assertEqual(self.run_tool('--version', 'v1').returncode, 0)
+        r = self.run_tool('--version', 'v2', html=FIXTURES[1])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('23 sections: 9 added, 0 removed, 0 changed', r.stdout)
+        self.assertIn('added: h3093, h3094, h3095, h3096, h3097, nikah-b1, h3098, h3099, h3100', r.stdout)
+        m = self.meta()
+        self.assertEqual((m['rev'], m['books'][0]['last'], m['books'][0]['count']), (2, 3100, 23))
+        self.assertEqual(self.run_tool('--version', 'v2', html=FIXTURES[1]).stdout.strip(), 'Nothing to update.')
+
+    def test_bab_opening_without_heading(self):
+        second = FIXTURES[1].read_text(encoding='utf-8')
+        bad = second.replace('<h2 class="bab" dir="rtl">(١) باب النظر إلى المخطوبة وبيان العورات</h2>', '', 1)
+        self.assertNotEqual(bad, second)
+        self.assert_rejected(bad, 'b1: bāb opening without a matching')
+
+    def test_unrecognised_heading(self):
+        bad = HTML.replace('<h2 class="bab" dir="rtl">الفصل الثاني</h2>', '<h2 class="bab" dir="rtl">عنوان آخر</h2>', 1)
+        self.assert_rejected(bad, 'unrecognised heading')
 
     def test_truncated(self):
         self.assert_rejected(HTML[:len(HTML) // 2], 'truncated')
