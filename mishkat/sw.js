@@ -1,4 +1,4 @@
-const VERSION = 'mishkat-v1.1.0';
+const VERSION = 'mishkat-v1.2.0';
 /* Offline cache for the Mishkāt Commentary Reader.
    Bump VERSION whenever any file below changes so visitors receive the update. */
 const ASSETS = [
