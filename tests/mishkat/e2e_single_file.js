@@ -33,13 +33,13 @@ async function run(browser, R, vp) {
 
   await page.goto('file://' + FILE);
   await page.waitForFunction(() => document.getElementById('status') && document.getElementById('status').dataset.ready === '1', null, { timeout: 30000 }).catch(() => {});
-  const onlineStatus = await page.textContent('#status-t');
+  const onlineStatus = await page.textContent('#status-text');
   R.check(`[${label}] status before going offline says it works anywhere`, /works anywhere/.test(onlineStatus), onlineStatus);
   await ctx.setOffline(true);
   await page.reload();
   await page.waitForFunction(() => document.getElementById('status').dataset.ready === '1', null, { timeout: 30000 }).catch(() => {});
 
-  const status = await page.textContent('#status-t');
+  const status = await page.textContent('#status-text');
   R.check(`[${label}] status while offline`, /Offline/.test(status), status);
   const sw = await page.evaluate(async () => {
     if (!('serviceWorker' in navigator)) return 'no API';

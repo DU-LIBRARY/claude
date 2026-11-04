@@ -74,7 +74,7 @@ async function run(browser, srv, vp, R) {
   let controlled = await page.evaluate(() => !!navigator.serviceWorker.controller);
   if (!controlled) { await page.reload(); await waitReady(page); controlled = await page.evaluate(() => !!navigator.serviceWorker.controller); }
   R.check(`[${label}] service worker controls the page`, controlled);
-  const status = await page.textContent('#status-t');
+  const status = await page.textContent('#status-text');
   R.check(`[${label}] "Ready offline" indicator shown`, /Ready offline/.test(status), status);
   const keys = await page.evaluate(() => caches.keys());
   R.check(`[${label}] cache ${VERSION} present`, keys.includes(VERSION), JSON.stringify(keys));
@@ -85,7 +85,7 @@ async function run(browser, srv, vp, R) {
   await ctx.setOffline(true);
   await page.reload();
   await waitReady(page);
-  const offStatus = await page.textContent('#status-t');
+  const offStatus = await page.textContent('#status-text');
   R.check(`[${label}] offline reload renders the list`, (await page.locator('#list li.e').count()) === SECTIONS.length);
   R.check(`[${label}] status while offline says all sections available`, /Offline|Ready offline/.test(offStatus), offStatus);
 

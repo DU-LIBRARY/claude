@@ -1771,6 +1771,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
     else if (!canSW) t = 'serviceWorker' in navigator ? 'Open over https to save offline' : 'Online only in this browser';
     else t = 'Preparing offline copy…';
     status.dataset.s = s;
+    status.dataset.ready = (ss.ready || singleFile) ? '1' : '';
     if (statusT.textContent !== t) statusT.textContent = t;
     const pb = $('pbar');
     if (ss.progress && !ss.ready && !singleFile) { pb.hidden = false; $('pbar-i').style.transform = 'scaleX(' + (ss.progress.done / ss.progress.total) + ')'; } else pb.hidden = true;
