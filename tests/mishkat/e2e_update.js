@@ -9,7 +9,15 @@ const { spawnSync } = require('child_process');
 const { chromium } = require('playwright');
 const { REPO, serve, watch, makeReporter, waitReady } = require('./_common');
 
-const FIXTURE = path.join(REPO, 'tests', 'mishkat', 'fixtures', 'nikah-artifact.html');
+// the fixture the current data was synced from (matched by sha256), so the test changes one word and nothing else
+const FIXTURE = (() => {
+  const dir = path.join(REPO, 'tests', 'mishkat', 'fixtures');
+  const want = JSON.parse(fs.readFileSync(path.join(REPO, 'mishkat', 'data', 'meta.json'), 'utf8')).source.sha256;
+  const hit = fs.readdirSync(dir).filter((f) => f.endsWith('.html'))
+    .find((f) => require('crypto').createHash('sha256').update(fs.readFileSync(path.join(dir, f))).digest('hex') === want);
+  if (!hit) throw new Error('no fixture matches meta.source.sha256 ' + want);
+  return path.join(dir, hit);
+})();
 const OLD_WORD = 'أَضَرَّ';
 const NEW_WORD = 'أَشَدَّ';
 
@@ -66,10 +74,13 @@ async function main() {
     const s1 = sync([path.join(root, 'tools', 'sync_mishkat_from_artifact.py'), modified, '--root', root, '--version', 'test-2']);
     R.check('sync exits 0 on the changed artifact', s1.code === 0, s1.out.split('\n').slice(-4).join(' | '));
     R.check('sync output lists "changed: h3085"', /changed: h3085\b/.test(s1.out), s1.out.split('\n').filter((l) => /changed|added|removed/.test(l)).join(' | '));
+    // python's http.server answers If-Modified-Since at one-second granularity; push the synced files' mtimes
+    // forward so a sync landing in the same second as an earlier fetch is not answered with 304 Not Modified
+    { const t = Date.now() / 1000 + 5; const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => { const f = path.join(d, e.name); if (e.isDirectory()) walk(f); else fs.utimesSync(f, t, t); }); walk(path.join(root, 'mishkat')); }
     const swV1 = /const VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(root, 'mishkat', 'sw.js'), 'utf8'))[1];
     R.check('sw.js VERSION bumped', swV1 !== swV0 && /^mishkat-v\d+\.\d+\.\d+$/.test(swV1), `${swV0} -> ${swV1}`);
     const meta1 = JSON.parse(fs.readFileSync(path.join(root, 'mishkat', 'data', 'meta.json'), 'utf8'));
-    R.check('meta rev incremented to 2', meta1.rev === 2 && meta0.rev === 1, `rev ${meta0.rev} -> ${meta1.rev}`);
+    R.check('meta rev incremented by 1', meta1.rev === meta0.rev + 1, `rev ${meta0.rev} -> ${meta1.rev}`);
     R.check('the data file contains the new word', fs.readFileSync(path.join(root, 'mishkat', 'data', 'nikah.json'), 'utf8').includes(NEW_WORD));
 
     // 5. reload online: the update prompt appears; Reload applies it
@@ -98,7 +109,7 @@ async function main() {
     const matn = await page.textContent('#matn-h3085').catch(() => '');
     R.check('offline: the changed word is shown in h3085', matn.includes(NEW_WORD) && !matn.includes(OLD_WORD), matn.slice(0, 120));
     const syncline = await page.textContent('#syncline');
-    R.check('offline: sync line reports rev 2', /rev 2\b/.test(syncline), syncline.slice(0, 120));
+    R.check('offline: sync line reports the new rev', new RegExp('rev ' + meta1.rev + '\\b').test(syncline), syncline.slice(0, 120));
     await page.click('#settings').catch(async () => {
       await page.evaluate(() => { history.replaceState(null, '', location.pathname); window.dispatchEvent(new HashChangeEvent('hashchange')); });
       await page.waitForSelector('#app[data-view="home"]');

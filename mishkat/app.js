@@ -128,8 +128,11 @@
     if (/صحيح|حسن|جيد|قوي/.test(t)) return 'good';
     return 'neutral';
   }
+  // the chip shows only the verdict ("صحيح", "ضعيف لإرساله"); the full line stays printed under the commentary
+  const gradeVerdict = (line) => gradeShort(line).split(/\s*[،,]\s*|\s+(?=انظر|رواه|وانظر|وقد)/)[0];
+  const isGrade = (line) => gradeType(gradeShort(line)) !== 'neutral';
   function gradeChip(line) {
-    const t = gradeShort(line);
+    const t = gradeVerdict(line);
     const c = el('span', 'gr', t); c.lang = 'ar'; c.dir = 'rtl'; c.dataset.t = gradeType(t); c.title = line;
     return c;
   }
@@ -412,7 +415,7 @@
       s._en = norm([s.label, s.fasl && s.fasl.en, (s.commentaries || []).map((c) => c.cite).join(' ')].join(' '));
       s._cs = null;
       const g = [];
-      (s.grading || []).forEach((l) => { if (!g.includes(l)) g.push(l); });
+      (s.grading || []).forEach((l) => { if (isGrade(l) && !g.includes(l)) g.push(l); });
       s._grades = g;
       SECTIONS.push(s); BYID.set(s.id, s);
     }));
