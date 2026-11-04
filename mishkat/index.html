@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mishkāt Commentary Reader</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Kitāb al-Nikāḥ from Mishkāt al-Maṣābīḥ with the commentaries of Mirqāt al-Mafātīḥ, al-Ṭībī and Lamaʿāt al-Tanqīḥ, in Arabic. Works offline.">
+<meta name="theme-color" content="#f5f6f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1311" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mishkāt">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/noto-naskh-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/amiri-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Amiri";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/amiri-arabic-400-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Amiri";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/amiri-arabic-700-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Noto Naskh Arabic";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/noto-naskh-arabic-arabic-400-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Noto Naskh Arabic";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/noto-naskh-arabic-arabic-700-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-latin-ext-500-normal.woff2) format("woff2");unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+/* Layout: on a phone, a list of sections and a full-screen reader (the list comes back with Back).
+   From 1000px wide the list becomes a sidebar and the reader sits beside it (master-detail). */
+:root{
+  color-scheme:light;
+  --bg:#f5f6f2; --surface:#ffffff; --sunk:#eceee8; --fg:#1a201d; --muted:#5a645e; --rule:#d8ddd6;
+  --accent:#1d5a47; --accent-ink:#ffffff; --accent-soft:#e1ede7; --mark:#f1df9d; --gold:#9a7a2c;
+  --c-s:#1d5a47; --c-t:#3a4d86; --c-a:#7a2e2a;
+  --warn:#7a5710; --warn-soft:#f4ebd2; --bad:#8a2f2a; --bad-soft:#f6e2df;
+  --shadow:0 1px 2px rgb(20 40 30 / .06),0 8px 24px -12px rgb(20 40 30 / .18);
+  --ar:"Noto Naskh Arabic","Amiri","Traditional Arabic","Geeza Pro",serif;
+  --ar-display:"Amiri","Noto Naskh Arabic","Traditional Arabic","Geeza Pro",serif;
+  --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Amiri",sans-serif;
+  --ar-size:19px; --sidew:clamp(340px,30vw,420px);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --top:env(safe-area-inset-top,0px);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --surface:#171c19; --sunk:#131715; --fg:#e3e8e4; --muted:#98a39d; --rule:#2a322e;
+  --accent:#7cc4a9; --accent-ink:#0f1311; --accent-soft:#1c2a24; --mark:#5c4c16; --gold:#d6b46a;
+  --c-s:#7cc4a9; --c-t:#a0b3ea; --c-a:#e2958d;
+  --warn:#e3c277; --warn-soft:#2f2813; --bad:#eba39b; --bad-soft:#3a1f1c;
+  --shadow:0 1px 2px rgb(0 0 0 / .4),0 10px 30px -12px rgb(0 0 0 / .6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --surface:#171c19; --sunk:#131715; --fg:#e3e8e4; --muted:#98a39d; --rule:#2a322e;
+  --accent:#7cc4a9; --accent-ink:#0f1311; --accent-soft:#1c2a24; --mark:#5c4c16; --gold:#d6b46a;
+  --c-s:#7cc4a9; --c-t:#a0b3ea; --c-a:#e2958d;
+  --warn:#e3c277; --warn-soft:#2f2813; --bad:#eba39b; --bad-soft:#3a1f1c;
+  --shadow:0 1px 2px rgb(0 0 0 / .4),0 10px 30px -12px rgb(0 0 0 / .6); color-scheme:dark}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:calc(var(--top) + 76px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+[hidden]:not([hidden=until-found i]){display:none!important}
+button{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:8px;top:-60px;z-index:60;background:var(--accent);color:var(--accent-ink);padding:8px 12px;border-radius:8px}
+.skip:focus{top:calc(var(--top) + 8px)}
+[lang=ar],.ar{font-family:var(--ar)}
+
+/* ---------- shared controls ---------- */
+.icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:10px;border:1px solid var(--rule);background:var(--surface);cursor:pointer;color:var(--fg);transition:background .2s,border-color .2s,color .2s;flex:none;padding:0}
+.icon-btn:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--rule))}
+.icon-btn svg{width:18px;height:18px}
+.icon-btn[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.icon-btn.txt{font-size:13px;font-weight:600;letter-spacing:.01em;width:auto;min-width:40px;padding:0 10px}
+.icon-btn.txt .ar{font-size:15px;font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border:1px solid var(--rule);border-radius:9px;background:var(--surface);font-size:13px;cursor:pointer;transition:border-color .2s;white-space:nowrap}
+.btn:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--rule))}
+.btn svg{width:15px;height:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn.small{height:30px;padding:0 10px;font-size:12.5px}
+.install{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 13px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:500;cursor:pointer}
+.install svg{width:16px;height:16px}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap;scroll-snap-align:start;transition:background .2s,border-color .2s,color .2s}
+.chip:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--rule))}
+.chip .n{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip svg{width:14px;height:14px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] .n{color:inherit;opacity:.8}
+.chip.ar{font-family:var(--ar);font-size:15px}
+.seg{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;padding:3px;border-radius:11px;background:var(--sunk);border:1px solid var(--rule)}
+.seg .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:0;border-radius:8px;background:var(--surface);box-shadow:var(--shadow);z-index:0;will-change:transform}
+.seg button{position:relative;z-index:1;border:0;background:transparent;min-height:32px;padding:0 12px;font-size:13px;color:var(--muted);cursor:pointer;border-radius:8px;transition:color .2s;white-space:nowrap}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{color:var(--fg);font-weight:500}
+.seg button .ar{font-size:16px}
+.seg.tabs{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+.seg.tabs button{min-height:44px;display:grid;gap:0;align-content:center;line-height:1.25}
+.seg.tabs button .ar{font-size:17px;font-weight:700;font-family:var(--ar-display)}
+.seg.tabs button small{font-size:11px;color:var(--muted)}
+.switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-size:13px;color:var(--muted)}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{width:34px;height:20px;border-radius:999px;background:var(--rule);position:relative;transition:background .25s var(--ease);flex:none}
+.switch .track::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgb(0 0 0 / .25);transition:transform .3s var(--ease)}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track::after{transform:translateX(14px)}
+.switch input:focus-visible+.track{outline:2px solid var(--accent);outline-offset:2px}
+mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.gr{display:inline-flex;align-items:center;gap:5px;font-family:var(--ar);font-size:14px;line-height:1.5;padding:0 9px;border-radius:999px;border:1px solid transparent;background:var(--sunk);color:var(--muted);font-weight:700;white-space:nowrap;max-width:100%}
+.gr[data-t="good"]{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.gr[data-t="weak"]{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.gr[data-t="bad"]{background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
+
+/* ---------- app frame ---------- */
+.app{display:block}
+.reader{display:none;min-width:0}
+.app[data-view="read"] .side{display:none}
+.app[data-view="read"] .reader{display:block}
+.side{min-width:0}
+.only-wide{display:none!important}
+
+/* ---------- title plate ---------- */
+.plate{position:relative;padding-block:18px 20px;border-bottom:1px solid var(--rule);overflow:hidden;isolation:isolate}
+.plate canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  -webkit-mask-image:linear-gradient(100deg,transparent 30%,#000 95%);mask-image:linear-gradient(100deg,transparent 30%,#000 95%)}
+.bar{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:16px}
+.status{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:4px 10px 4px 8px;border:1px solid var(--rule);border-radius:999px;background:color-mix(in srgb,var(--surface) 80%,transparent);backdrop-filter:blur(6px);min-width:0}
+.status i{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.status span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status[data-s="ready"] i{background:var(--c-s)}
+.status[data-s="offline"] i{background:var(--gold)}
+.tools{display:flex;gap:6px;flex:none}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.logo{width:36px;height:36px;border-radius:9px;flex:none;box-shadow:var(--shadow)}
+.title-ar{font-family:var(--ar-display);font-weight:700;font-size:clamp(36px,9vw,52px);line-height:1.3;direction:rtl;text-align:right;margin:0;color:var(--accent);letter-spacing:0}
+.title-en{font-size:clamp(17px,2.4vw,20px);line-height:1.3;margin:4px 0 0;font-weight:500;text-wrap:balance}
+.title-en span{color:var(--muted);font-weight:400}
+.meta{color:var(--muted);font-size:13.5px;margin:10px 0 0;max-width:64ch}
+.syncline{margin:10px 0 0;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px;align-items:center}
+.linkbtn{border:0;background:transparent;padding:2px 0;color:var(--accent);font-size:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;position:relative}
+.linkbtn .dot{position:absolute;top:0;right:-9px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 18px;margin:12px 0 0;padding:0;list-style:none;font-size:12.5px;color:var(--muted)}
+.facts b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- deck: search ---------- */
+.deck{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid transparent;transition:border-color .25s,box-shadow .25s;transform:translateZ(0)}
+.deck.stuck{border-bottom-color:var(--rule);box-shadow:0 8px 20px -18px rgb(0 0 0 / .5)}
+.deck .wrap{padding-block:10px;display:flex;gap:8px;align-items:center}
+.sbox{position:relative;display:flex;align-items:center;flex:1;min-width:0}
+.sbox>svg{position:absolute;inset-inline-start:13px;width:18px;height:18px;color:var(--muted);pointer-events:none}
+#q{flex:1;min-width:0;font:inherit;font-size:17px;height:46px;padding:0 74px 0 42px;border:1.5px solid var(--rule);border-radius:12px;background:var(--surface);color:var(--fg);unicode-bidi:plaintext;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+#q::-webkit-search-cancel-button{display:none}
+#q::placeholder{color:color-mix(in srgb,var(--muted) 85%,transparent)}
+#q:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.sbox .kbd{position:absolute;inset-inline-end:12px;font-size:11.5px;color:var(--muted);border:1px solid var(--rule);border-radius:6px;padding:1px 7px;background:var(--sunk);pointer-events:none}
+#clear{position:absolute;inset-inline-end:6px;height:34px;padding:0 11px;border:0;border-radius:9px;background:var(--sunk);color:var(--muted);font-size:13px;cursor:pointer}
+.deck .icon-btn{width:46px;height:46px}
+.filters{padding-block:2px 10px;display:grid;gap:10px}
+.row{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-inline:-4px;padding:2px 4px;scroll-snap-type:x proximity}
+.row::-webkit-scrollbar{display:none}
+.opts{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+#count{margin-inline-start:auto;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+#count b{color:var(--fg);font-weight:600}
+
+/* ---------- list ---------- */
+.list-wrap{padding-block:0 28px;border-top:1px solid var(--rule)}
+ol.list{list-style:none;margin:0;padding:0}
+.gh{list-style:none;margin:0;padding:20px 2px 8px;display:flex;align-items:baseline;gap:12px;justify-content:space-between;border-bottom:1px solid var(--rule)}
+.gh .ar{font-family:var(--ar-display);font-size:21px;font-weight:700;color:var(--accent);direction:rtl}
+.gh .en{font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+.gh.book{padding-top:22px}
+.gh.book .ar{font-size:25px}
+li.e{position:relative;border-bottom:1px solid var(--rule)}
+li.e>a.rowlink{display:grid;grid-template-columns:3.4em minmax(0,1fr);gap:2px 12px;align-items:start;padding:13px 52px 13px 4px;color:inherit;text-decoration:none;border-radius:12px;transition:background .2s}
+li.e>a.rowlink:hover{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+li.e.cur>a.rowlink{background:var(--accent-soft)}
+li.e.cur::before{content:"";position:absolute;inset-block:10px;left:-2px;width:3px;border-radius:2px;background:var(--accent)}
+.num{font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;color:var(--accent);padding-top:5px;line-height:1.2;text-align:start;transform-origin:left top}
+.num.intro{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;color:var(--muted);padding-top:8px}
+.snip{font-family:var(--ar);font-size:19px;line-height:1.85;direction:rtl;text-align:right;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transform-origin:right top}
+.tags{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0;margin-top:2px}
+.tags:empty{display:none}
+.mk{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--warn);font-weight:600}
+.mk svg{width:13px;height:13px}
+.hit{grid-column:2;margin-top:4px;font-family:var(--ar);font-size:15px;line-height:1.8;color:var(--muted);direction:rtl;text-align:right}
+.hit b{font-family:var(--ui);font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.03em;margin-inline-start:8px;direction:ltr;unicode-bidi:isolate}
+.star{position:absolute;right:6px;top:6px;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;transition:color .2s,background .2s}
+.star:hover{color:var(--warn);background:var(--sunk)}
+.star svg{width:19px;height:19px}
+.star[aria-pressed="true"]{color:var(--gold)}
+.star[aria-pressed="true"] svg path{fill:currentColor}
+.empty{padding:48px 8px;color:var(--muted);text-align:center;display:grid;gap:10px;justify-items:center}
+.empty .glyph{font-family:var(--ar-display);font-size:52px;line-height:1;color:var(--rule)}
+.empty p{margin:0;max-width:44ch}
+.empty-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.about{margin-top:28px;padding-top:20px;border-top:1px solid var(--rule);font-size:13px;color:var(--muted);display:grid;gap:8px;max-width:70ch}
+.about h2{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--fg);font-weight:600}
+.about p{margin:0}
+.foot-ar{font-family:var(--ar);font-size:15px;line-height:1.9;direction:rtl;text-align:right}
+
+/* ---------- reader ---------- */
+.rbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
+.rbar .wrap{display:flex;align-items:center;gap:8px;min-height:56px;padding-block:8px;max-width:none}
+.rtitle{flex:1;min-width:0;display:grid;line-height:1.25}
+.rtitle b{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;transform-origin:left center}
+.rtitle span{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtitle span.ar{font-size:14px}
+.rnav{display:flex;gap:6px}
+.prog{position:absolute;left:0;right:0;bottom:-1px;height:3px;background:transparent;pointer-events:none;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
+.rd{max-width:760px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
+.rd[data-mode="side"]{max-width:1500px}
+.rtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.rtools .gap{flex:1}
+.rtools .grp{display:flex;gap:6px;align-items:center}
+.matn{position:relative;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 18%,var(--rule));border-radius:16px;padding:18px 20px 20px}
+.matn-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.matn .num-l{font-size:12.5px;font-weight:600;letter-spacing:.04em;color:var(--accent);margin:0;font-variant-numeric:tabular-nums}
+.matn-ar{font-family:var(--ar-display);font-size:calc(var(--ar-size) * 1.3);line-height:2.05;direction:rtl;text-align:right;margin:0;transform-origin:right top;overflow-wrap:anywhere}
+.matn-gr{display:flex;flex-wrap:wrap;gap:6px}
+.mref{font-family:var(--ar);font-size:.62em;color:var(--muted);line-height:1.4}
+.matn .mref{display:inline}
+.stack{display:grid;gap:14px;margin-top:16px}
+.tabs-wrap{margin-top:16px}
+.cm{background:var(--surface);border:1px solid var(--rule);border-radius:14px;min-width:0;position:relative}
+.cm-h{display:flex;align-items:center;gap:6px;padding:4px 8px 4px 4px}
+.cm-t{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:start;border:0;background:transparent;padding:10px 12px;border-radius:12px;cursor:pointer;min-height:56px}
+.cm-t h2{margin:0;display:grid;gap:1px;min-width:0;font-weight:400}
+.cm-src{font-family:var(--ar-display);font-size:21px;line-height:1.5;font-weight:700;color:var(--fg);direction:rtl;text-align:left}
+.cm-cite{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cm-t .chev{margin-inline-start:auto;width:18px;height:18px;color:var(--muted);transition:transform .35s var(--ease);flex:none}
+.cm[data-open="false"] .cm-t .chev{transform:rotate(-90deg)}
+.cm-act{display:flex;gap:2px}
+.cm-act .icon-btn{width:36px;height:36px;border-color:transparent;background:transparent;color:var(--muted)}
+.cm-act .icon-btn:hover{color:var(--fg);background:var(--sunk)}
+.cm-body{overflow:hidden}
+.cm-in{padding:2px 18px 18px}
+.cm-ed{font-size:12.5px;color:var(--muted);margin:0 0 10px;line-height:1.7;background:var(--sunk);border-radius:8px;padding:6px 10px;unicode-bidi:plaintext}
+.cm-ed [dir=rtl]{font-family:var(--ar);font-size:1.15em}
+.cm-p{font-family:var(--ar);font-size:var(--ar-size);line-height:2.05;direction:rtl;text-align:right;margin:0 0 .75em;overflow-wrap:anywhere}
+.cm-p.center{text-align:center}
+.cm-p b{color:var(--accent);font-weight:700}
+.fn{font-family:var(--ui);line-height:0}
+.fn a{color:var(--accent);text-decoration:none;font:600 .7em var(--ui);padding:3px 2px;position:relative}
+.fn a:hover{text-decoration:underline}
+.notes{border-top:1px solid var(--rule);margin-top:12px;padding-top:8px;font-family:var(--ar);font-size:calc(var(--ar-size) * .8);line-height:1.9;color:var(--muted);direction:rtl}
+.notes ol{margin:0;padding-inline-start:1.9em;list-style-type:arabic-indic}
+.notes li{scroll-margin-top:calc(var(--top) + 80px);position:relative;padding-block:1px;border-radius:6px}
+.notes li::marker{color:var(--accent);font-weight:700}
+.fnback{font-family:var(--ui);color:var(--accent);text-decoration:none;font-size:.85em;padding:4px 6px}
+.cm-refs{margin-top:12px;border-top:1px dashed var(--rule);padding-top:10px;display:grid;gap:6px}
+.cm-ref{font-family:var(--ar);font-size:calc(var(--ar-size) * .78);line-height:1.85;color:var(--muted);direction:rtl;text-align:right;margin:0}
+.cm-ref.grade{color:var(--warn);font-weight:700}
+.cm-ref.grade.good{color:var(--accent)}
+.cm-ref.grade.bad{color:var(--bad)}
+.pulse{position:relative}
+.pulse::after{content:"";position:absolute;inset:-3px -6px;border-radius:8px;background:var(--gold);opacity:0;pointer-events:none;animation:pulse 1.4s ease-out 1}
+@keyframes pulse{0%{opacity:0}18%{opacity:.5}100%{opacity:0}}
+.mynotes{margin-top:22px;display:grid;gap:6px;padding:14px 16px;border-radius:14px;background:var(--sunk);border:1px solid var(--rule);transition:border-color .2s,box-shadow .2s}
+.mynotes:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 18%,transparent)}
+.mynotes-h{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--warn);cursor:text}
+.mynotes-h svg{width:14px;height:14px}
+textarea.note{width:100%;min-height:72px;resize:none;border:0;outline:0;padding:0;background:transparent;color:var(--fg);font-family:var(--ui);font-size:16px;line-height:1.6;unicode-bidi:plaintext}
+textarea.note::placeholder{color:var(--muted);font-style:italic}
+.note-st{font-size:11.5px;color:var(--muted);min-height:1.2em}
+.note-st.err{color:var(--bad)}
+.pn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.pn a{display:grid;gap:2px;padding:12px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--surface);text-decoration:none;color:var(--fg);transition:border-color .2s}
+.pn a:hover{border-color:var(--accent)}
+.pn a small{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pn a b{font-weight:600;font-variant-numeric:tabular-nums}
+.pn a.n{text-align:end}
+.pn a[aria-disabled="true"]{visibility:hidden}
+:root.nofn .fn,:root.nofn .notes{display:none}
+.rd[data-mode="side"] .cm-t{cursor:default}
+.rd[data-mode="side"] .cm-t .chev,.rd[data-mode="one"] .cm-t .chev{display:none}
+.rd[data-mode="one"] .cm-t,.rd[data-mode="side"] .cm-t{cursor:default}
+.rd[data-mode="side"] .stack{grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));direction:rtl;align-items:start}
+.rd[data-mode="side"] .stack .cm{direction:ltr}
+.rd[data-mode="side"] .stack .cm:nth-child(3):nth-last-child(1){grid-column:var(--span3,auto)}
+.rd[data-mode="side"] .cm-in{padding-inline:16px}
+.welcome{padding:40px 8px;text-align:center;color:var(--muted)}
+
+/* ---------- toast & dialogs ---------- */
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;flex-direction:column;gap:8px}
+.fab button{width:46px;height:46px;border-radius:14px;border:1px solid var(--rule);background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;color:var(--fg)}
+.fab svg{width:20px;height:20px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--fg);color:var(--bg);font-size:13.5px;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 32px);width:max-content}
+.toast button{border:0;background:transparent;color:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:4px}
+dialog{max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--rule);border-radius:16px;background:var(--surface);color:var(--fg);padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px -20px rgb(0 0 0 / .45)}
+dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
+.dlg{padding:20px;display:grid;gap:14px}
+.dlg h2{margin:0;font-weight:600;font-size:20px}
+.dlg p,.dlg ol,.dlg ul{margin:0;color:var(--muted);font-size:14px}
+.dlg ol,.dlg ul{padding-inline-start:20px;display:grid;gap:6px}
+.dlg .grp{display:grid;gap:8px}
+.dlg .lbl{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sync-box{display:grid;gap:10px}
+.sync-box p b{color:var(--fg);font-weight:600}
+.sync-err{color:var(--bad)!important}
+.btn.primary svg{width:16px;height:16px}
+.dlg .actions{display:flex;justify-content:flex-end;gap:8px}
+.stepper{display:inline-flex;align-items:center;gap:8px}
+.stepper output{min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums;font-size:14px}
+.jump-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.jump-grid a{display:grid;place-items:center;height:42px;border:1px solid var(--rule);border-radius:10px;text-decoration:none;color:var(--fg);font-variant-numeric:tabular-nums;font-weight:500;font-size:14px;background:var(--surface)}
+.jump-grid a:hover{border-color:var(--accent)}
+.jump-grid a[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.jump-grid a.wide{grid-column:1/-1;font-weight:400;font-size:13px}
+.wn-list{display:flex;flex-wrap:wrap;gap:6px}
+.wn-list a,.wn-list span{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--sunk);font-size:13px;font-variant-numeric:tabular-nums;color:var(--fg);text-decoration:none;border:1px solid var(--rule)}
+.wn-list a{color:var(--accent);font-weight:500}
+.pbar{height:4px;border-radius:2px;background:var(--rule);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left}
+
+/* ---------- wide: list sidebar + reader ---------- */
+@media (min-width:1000px){
+  .app{display:grid;grid-template-columns:var(--sidew) minmax(0,1fr)}
+  .app[data-view] .side,.app[data-view] .reader{display:block}
+  .side{position:sticky;top:env(safe-area-inset-top,0px);height:calc(100dvh - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;border-inline-end:1px solid var(--rule);scrollbar-width:thin;background:var(--bg)}
+  .side .wrap,.deck .wrap{padding-inline:16px}
+  .plate{padding-block:14px 16px}
+  .plate .meta,.plate .facts{display:none}
+  .title-ar{font-size:40px}
+  .only-narrow{display:none!important}
+  .only-wide{display:inline-grid!important}
+  .rbar{top:env(safe-area-inset-top,0px)}
+  .rd{padding-top:20px}
+  html{scroll-padding-top:calc(var(--top) + 80px)}
+  body.nosb .app{grid-template-columns:minmax(0,1fr)}
+  body.nosb .side{display:none!important}
+  li.e>a.rowlink{padding-right:48px}
+}
+@media (max-width:600px){
+  .matn{padding:16px 14px 18px;border-radius:14px}
+  .cm-in{padding-inline:14px}
+  .rtools .gap{display:none}
+  .rtools{gap:6px}
+  #q{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  .pulse::after{animation:none;opacity:.35}}
+@media print{.rbar,.side,.rtools,.fab,.pn,.mynotes,.cm-act{display:none!important}.app{display:block}.reader{display:block!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#reader-main">Skip to the reader</a>
+<div class="app" id="app" data-view="home">
+
+<aside class="side" id="side" aria-label="Sections">
+  <header class="plate">
+    <canvas id="pattern" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="bar">
+        <span class="brand"><img class="logo" src="icons/icon.svg" alt="" width="36" height="36"><span class="status" id="status" data-s="loading" role="status"><i></i><span id="status-t">Preparing offline copy…</span></span></span>
+        <div class="tools">
+          <button class="install" id="install" type="button" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>Install</button>
+          <button class="icon-btn" id="jump-home" type="button" title="Jump to a section" aria-label="Jump to a section">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"/><path d="m17 10 3 2-3 2"/></svg></button>
+          <button class="icon-btn" id="settings" type="button" title="Reading settings" aria-label="Reading settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h4M4 17h8M12 7h8M16 17h4"/><circle cx="10" cy="7" r="2"/><circle cx="14" cy="17" r="2"/></svg></button>
+        </div>
+      </div>
+      <h1 class="title-ar" lang="ar" dir="rtl" id="t-ar">كتاب النكاح</h1>
+      <p class="title-en" id="t-en">Kitāb al-Nikāḥ <span>· Mishkāt al-Maṣābīḥ</span></p>
+      <p class="meta" id="t-meta">Each hadeeth with the commentaries of Mirqāt al-Mafātīḥ, al-Ṭībī and Lamaʿāt al-Tanqīḥ side by side, footnotes and takhrīj included. Search in Arabic with or without vowel marks, or by hadeeth number.</p>
+      <p class="syncline" id="syncline"></p>
+      <ul class="facts" id="facts"></ul>
+    </div>
+  </header>
+
+  <div class="deck" id="deck">
+    <div class="wrap">
+      <div class="sbox" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="ابحث… or hadeeth number, 3081" aria-label="Search the hadeeth and commentaries" aria-describedby="count">
+        <span class="kbd" id="kbd" aria-hidden="true">/</span>
+        <button id="clear" type="button" hidden>Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap filters" id="filters">
+    <div class="row" id="chips" role="group" aria-label="Filter sections"></div>
+    <div class="opts">
+      <label class="switch" for="deep"><input type="checkbox" id="deep"><span class="track" aria-hidden="true"></span>Search inside commentaries</label>
+      <span id="count" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <main class="wrap list-wrap" id="list-main">
+    <ol class="list" id="list" aria-label="Sections"></ol>
+    <div class="empty" id="empty" hidden>
+      <span class="glyph" lang="ar" aria-hidden="true">؟</span>
+      <p id="empty-t">Nothing matches that search.</p>
+      <div class="empty-actions" id="empty-actions"></div>
+    </div>
+    <section class="about" id="about">
+      <h2>About this reader</h2>
+      <p id="about-p">Commentary text is transcribed from scanned volumes of al-Ṭībī, Mirqāt and Lamaʿāt as printed. Footnotes are the printed editors' notes.</p>
+      <p class="foot-ar" lang="ar" dir="rtl" id="about-ar" hidden></p>
+      <p>Your notes, stars and settings stay on this device. Use Settings to export a backup.</p>
+    </section>
+  </main>
+</aside>
+
+<section class="reader" id="reader" aria-label="Reader">
+  <div class="rbar">
+    <div class="wrap">
+      <button class="icon-btn only-narrow" id="back" type="button" aria-label="Back to the list of sections" title="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+      <button class="icon-btn only-wide" id="sbtoggle" type="button" aria-label="Hide the list" aria-pressed="false" title="Show or hide the list">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+      <div class="rtitle"><b id="rt-num">Mishkāt</b><span id="rt-sub"></span></div>
+      <div class="rnav">
+        <button class="icon-btn" id="prev" type="button" aria-label="Previous section" title="Previous (p)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+        <button class="icon-btn" id="next" type="button" aria-label="Next section" title="Next (n)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+  </div>
+  <div class="rd" id="rd" data-mode="stack">
+    <div class="rtools" id="rtools">
+      <div class="seg" id="mode" role="group" aria-label="Compare commentaries">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" data-v="one" aria-pressed="false">One</button>
+        <button type="button" data-v="stack" aria-pressed="true">Stacked</button>
+        <button type="button" data-v="side" aria-pressed="false" id="mode-side">Side by side</button>
+      </div>
+      <span class="gap"></span>
+      <div class="grp">
+        <button class="icon-btn txt" id="fn-toggle" type="button" aria-pressed="true" title="Show or hide footnotes" aria-label="Footnotes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h8"/><path d="M5 20h6"/></svg></button>
+        <button class="icon-btn txt" id="sz-down" type="button" aria-label="Smaller Arabic text" title="Smaller Arabic text"><span class="ar" lang="ar">أ</span>−</button>
+        <button class="icon-btn txt" id="sz-up" type="button" aria-label="Larger Arabic text" title="Larger Arabic text"><span class="ar" lang="ar">أ</span>+</button>
+        <button class="icon-btn" id="star-r" type="button" aria-pressed="false" aria-label="Save this section" title="Save this section">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>
+        <button class="icon-btn" id="jump-r" type="button" aria-label="Jump to a section" title="Jump to a section">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"/><path d="m17 10 3 2-3 2"/></svg></button>
+        <button class="icon-btn" id="share-r" type="button" aria-label="Copy this hadeeth with its citation" title="Copy with citation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+      </div>
+    </div>
+    <div id="reader-main" tabindex="-1" style="outline:none"><div class="welcome" id="welcome">Choose a hadeeth from the list.</div></div>
+  </div>
+</section>
+</div>
+
+<div class="fab"><button id="top" type="button" aria-label="Back to top" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg></button></div>
+<div class="toast" id="toast" role="status" hidden><span id="toast-t"></span><button id="toast-b" type="button" hidden></button></div>
+
+<dialog id="dlg-settings" aria-labelledby="set-h">
+  <form method="dialog" class="dlg">
+    <h2 id="set-h">Reading settings</h2>
+    <div class="grp">
+      <span class="lbl">Theme</span>
+      <div class="seg" id="theme" role="group" aria-label="Theme">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" data-v="system" aria-pressed="true">System</button>
+        <button type="button" data-v="light" aria-pressed="false">Light</button>
+        <button type="button" data-v="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lbl">Arabic text size</span>
+      <div class="stepper"><button class="btn" type="button" id="set-sm" aria-label="Smaller Arabic text">A−</button><output id="set-size" aria-live="polite">19 px</output><button class="btn" type="button" id="set-lg" aria-label="Larger Arabic text">A+</button></div>
+    </div>
+    <div class="grp">
+      <label class="switch" for="set-fn"><input type="checkbox" id="set-fn" checked><span class="track" aria-hidden="true"></span>Show footnotes</label>
+    </div>
+    <div class="grp">
+      <span class="lbl">My notes, stars and settings</span>
+      <p><span id="notes-count">No notes yet.</span> They are kept on this device and survive closing the app or restarting it. A backup file is a good extra copy.</p>
+      <div class="row-btns"><button class="btn" type="button" id="notes-export">Export backup</button><button class="btn" type="button" id="notes-import">Import backup</button>
+      <input type="file" id="notes-file" accept="application/json,.json" hidden></div>
+    </div>
+    <div class="grp" id="sync-grp">
+      <span class="lbl">Sync notes across devices</span>
+      <div id="sync-box" class="sync-box"><p>Sync is available in the web app.</p></div>
+    </div>
+    <div class="grp" id="content-grp">
+      <span class="lbl">Content</span>
+      <p id="content-info"></p>
+      <div class="row-btns"><button class="btn" type="button" id="open-wn">What's new</button></div>
+    </div>
+    <div class="grp" id="offline-grp">
+      <span class="lbl">Offline</span>
+      <p id="offline-info">The whole reader is stored on this device after the first visit. Add it to your home screen to open it like an app.</p>
+      <div class="pbar" id="pbar" hidden><i id="pbar-i"></i></div>
+    </div>
+    <div class="actions"><button class="btn primary" value="close">Done</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-jump" aria-labelledby="jump-h">
+  <form method="dialog" class="dlg">
+    <h2 id="jump-h">Jump to</h2>
+    <div class="jump-grid" id="jump-grid"></div>
+    <div class="actions"><button class="btn primary" value="close">Close</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-wn" aria-labelledby="wn-h">
+  <form method="dialog" class="dlg">
+    <h2 id="wn-h">What's new</h2>
+    <div id="wn-body" class="grp"></div>
+    <div class="actions"><button class="btn primary" value="close">Close</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-ios" aria-labelledby="ios-h">
+  <form method="dialog" class="dlg">
+    <h2 id="ios-h">Install on iPhone or iPad</h2>
+    <ol>
+      <li>Tap the Share button in Safari’s toolbar.</li>
+      <li>Choose <b>Add to Home Screen</b>.</li>
+      <li>Tap <b>Add</b>. The reader then opens full-screen and works without a connection.</li>
+    </ol>
+    <div class="actions"><button class="btn primary" value="close">Got it</button></div>
+  </form>
+</dialog>
+
+<script id="data-meta" type="application/json"></script>
+<script src="vendor/motion-11.11.17.min.js"></script>
+<script src="app.js"></script>
+<script src="firebase-config.js"></script>
+<script src="sync.js"></script>
+</body>
+</html>
