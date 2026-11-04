@@ -106,7 +106,7 @@
     (runs || []).forEach((r) => {
       if (r.fn != null) {
         const sup = el('sup', 'fn'), a = el('a', '', r.mark);
-        a.href = '#' + r.fn; a.id = 'r-' + r.fn; a.setAttribute('aria-label', 'Footnote ' + r.mark);
+        a.href = '#' + r.fn; a.id = 'r-' + r.fn; a.setAttribute('aria-label', 'Footnote ' + toLatDig(r.mark));
         sup.appendChild(a); parent.appendChild(sup); return;
       }
       if (r.b || r.ref || r.rtl) {
@@ -218,10 +218,11 @@
     const a = await idbPut(rec), b = lsWrite();
     askPersist();
     updateNoteMarks(sid);
-    if (window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e) {} }
+    if (window.IkmalNotes && window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e) {} }
     return a || b;
   }
   /* Bridge for sync.js (same shape as the Al-Ikmāl app) */
+  function installBridge() {
   window.IkmalNotes = {
     records: allRecords,
     label: (id) => {
@@ -252,6 +253,7 @@
     refresh() { if (BOOKS.length) { buildChips(); runSearch(false); } },
     onLocalSave: null
   };
+  }
 
   /* ---------- state ---------- */
   let META = null, BOOKS = [], SECTIONS = [], BYID = new Map();
@@ -511,7 +513,7 @@
       hits.forEach((h) => { if (h.hit && h.hit.key) h.hit.snip = snippet(h.s, h.hit.key, words); });
     }
     st.hits = hits;
-    renderList(animate && !!raw === !!raw);
+    renderList(animate);
     const total = SECTIONS.length, n = hits.length;
     $('count').textContent = '';
     if (n === total && !raw && st.filter === 'all') { const b = el('b', '', String(total)); $('count').append(b, ' sections'); }
@@ -728,12 +730,15 @@
   function buildNotes(s) {
     const box = el('section', 'mynotes'); box.id = 'mynotes';
     const lab = el('label', 'mynotes-h'); lab.htmlFor = 'note-' + s.id; lab.append(icon('note'), el('span', '', 'My notes'));
-    const t = el('textarea', 'note'); t.id = 'note-' + s.id; t.rows = 2; t.dir = 'auto';
+    const t = el('textarea', 'note'); t.id = 'note-' + s.id; t.rows = 2; t.dir = 'auto'; t.maxLength = NOTE_MAX;
     t.placeholder = 'Write your own notes on this ' + (s.n != null ? 'hadeeth' : 'section') + '. They stay on this device, even offline.';
     const n = notes.get(noteId(s.id)); t.value = n ? n.text : '';
     const stt = el('span', 'note-st'); stt.setAttribute('aria-live', 'polite');
     if (n) stt.textContent = 'Saved ' + when(n.updated);
-    box.append(lab, t, stt);
+    const ct = el('span', 'note-ct'); ct.setAttribute('aria-live', 'off');
+    const upd = () => { const n = t.value.length; ct.hidden = n < NOTE_MAX - 5000; ct.textContent = n.toLocaleString('en') + ' / ' + NOTE_MAX.toLocaleString('en'); ct.classList.toggle('near', n >= NOTE_MAX - 500); };
+    upd(); t.addEventListener('input', upd);
+    box.append(lab, t, stt, ct);
     requestAnimationFrame(() => autosize(t));
     t.addEventListener('input', () => {
       autosize(t); stt.textContent = 'Saving…'; stt.classList.remove('err');
@@ -742,6 +747,7 @@
     t.addEventListener('blur', () => flushNote(t));
     return box;
   }
+  const NOTE_MAX = 45000;
   const pending = new Map();
   function flushNote(t) {
     const sid = t.id.slice(5);
@@ -789,7 +795,7 @@
     s.commentaries.forEach((c) => {
       const b = el('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.v = c.key; b.id = 'tab-' + c.key;
       b.setAttribute('aria-controls', s.id + '-' + c.key); b.setAttribute('aria-selected', 'false');
-      const ar = el('span', 'ar', AR_SHORT[c.key]); ar.lang = 'ar';
+      const ar = el('span', 'ar', AR_SHORT[c.key]); ar.lang = 'ar'; ar.dir = 'rtl';
       b.append(ar, el('small', '', EN_SHORT[c.key]));
       tl.appendChild(b);
     });
@@ -832,6 +838,8 @@
       const key = cm.dataset.key, body = cm.querySelector('.cm-body');
       const open = m === 'stack' ? !st.collapsed.has(key) : true;
       cm.hidden = m === 'one' && key !== st.tab;
+      if (m === 'one') { cm.setAttribute('role', 'tabpanel'); cm.setAttribute('aria-labelledby', 'tab-' + key); }
+      else { cm.removeAttribute('role'); cm.removeAttribute('aria-labelledby'); }
       cm.dataset.open = String(open); body.hidden = !open; body.style.height = '';
       cm.querySelector('.cm-t').setAttribute('aria-expanded', String(open));
       cm.querySelector('.cm-t').disabled = false;
@@ -845,16 +853,19 @@
     applyMode();
     if (canAnimate()) M.animate(main.querySelectorAll('.cm:not([hidden])'), { opacity: [0.2, 1], y: [10, 0] }, { delay: M.stagger(0.05), duration: 0.35, ease: EASE });
   });
+  let lastSideW = -1;
   function measureSide() {
-    const ok = $('reader').clientWidth >= 900;
-    if (ok !== st.sideOK || true) {
-      st.sideOK = ok;
-      $('mode-side').hidden = !ok;
-      applyMode();
-      modeSeg.place(false);
-    }
+    const w = $('reader').clientWidth;
+    if (w === lastSideW) return;
+    const wasCols = lastSideW >= 1200, hadOK = st.sideOK;
+    lastSideW = w;
+    const ok = w >= 900;
+    st.sideOK = ok;
+    $('mode-side').hidden = !ok;
+    if (ok !== hadOK || (w >= 1200) !== wasCols) { if (st.cur) applyMode(); }
+    modeSeg.place(false);
   }
-  if ('ResizeObserver' in window) new ResizeObserver(() => { if (st.cur) measureSide(); else { st.sideOK = $('reader').clientWidth >= 900; $('mode-side').hidden = !st.sideOK; } }).observe($('reader'));
+  if ('ResizeObserver' in window) new ResizeObserver(() => measureSide()).observe($('reader'));
 
   function setOpen(cm, open, animate) {
     const key = cm.dataset.key, body = cm.querySelector('.cm-body'), inner = cm.querySelector('.cm-in');
@@ -863,13 +874,13 @@
     if (open) {
       body.hidden = false;
       if (animate && canAnimate()) {
-        const h = inner.offsetHeight; body.style.height = '0px';
-        M.animate(body, { height: [0, h] }, { duration: Math.min(0.55, 0.28 + h / 4000), ease: EASE }).then(() => { body.style.height = 'auto'; });
+        const h = inner.offsetHeight; body.style.height = '0px'; body.style.willChange = 'height';
+        M.animate(body, { height: [0, h] }, { duration: Math.min(0.55, 0.28 + h / 4000), ease: EASE }).then(() => { body.style.height = 'auto'; body.style.willChange = ''; });
         M.animate(inner, { opacity: [0, 1], y: [-6, 0] }, { duration: 0.35, delay: 0.05, ease: EASE });
       } else body.style.height = 'auto';
     } else if (animate && canAnimate()) {
-      const h = body.offsetHeight;
-      M.animate(body, { height: [h, 0] }, { duration: 0.28, ease: EASE }).then(() => { if (cm.dataset.open === 'false') body.hidden = true; });
+      const h = body.offsetHeight; body.style.willChange = 'height';
+      M.animate(body, { height: [h, 0] }, { duration: 0.28, ease: EASE }).then(() => { body.style.willChange = ''; if (cm.dataset.open === 'false') body.hidden = true; });
     } else body.hidden = true;
   }
 
@@ -886,7 +897,7 @@
     if (act) {
       const cm = act.closest('.cm'), s = BYID.get(st.cur), c = s.commentaries.find((x) => x.key === cm.dataset.key);
       const text = c.paras.map((p) => segText(p)).join('\n\n') + '\n\n' + cite(s, c) + '\n' + linkTo(s, c);
-      if (act.dataset.act === 'share') shareText(EN_SHORT[c.key] + ' · ' + titleOf(s), text, linkTo(s, c)); else copyText(text, 'Copied with citation');
+      if (act.dataset.act === 'share') shareText(EN_SHORT[c.key] + ' · ' + titleOf(s), text); else copyText(text, 'Copied with citation');
       return;
     }
     const tog = t.closest('.cm-t');
@@ -905,7 +916,9 @@
       if (rd.dataset.mode === 'one' && cm.hidden) { st.tab = cm.dataset.key; store.set('tab', st.tab); applyMode(); }
       if (cm.dataset.open === 'false') setOpen(cm, true, false);
     }
+    if (!node.matches('a')) node.tabIndex = -1;
     scrollTo(node, 'center'); pulse(node);
+    node.focus({ preventScroll: true });
   }
 
   /* copy / share */
@@ -920,7 +933,7 @@
     }
     toast(ok ? msg : 'Could not copy. Select the text and copy it by hand.');
   }
-  function shareText(title, text, url) {
+  function shareText(title, text) {
     if (navigator.share) navigator.share({ title, text }).catch(() => {});
     else copyText(text, 'Copied with citation');
   }
@@ -931,20 +944,26 @@
   }
   $('share-r').addEventListener('click', () => {
     const s = BYID.get(st.cur); if (!s) return;
-    if (navigator.share && !/^file:/.test(location.protocol)) shareText(titleOf(s), sectionText(s), linkTo(s)); else copyText(sectionText(s), 'Copied with citation');
+    if (navigator.share && !/^file:/.test(location.protocol)) shareText(titleOf(s), sectionText(s)); else copyText(sectionText(s), 'Copied with citation');
   });
-  $('share-r').addEventListener('contextmenu', () => {});
 
   /* ---------- routing ---------- */
+  /* '#intro' (the old id) stays a deep link to the first book's opening section; any other id is used as is. */
+  function resolveId(x) {
+    if (BYID.has(x)) return x;
+    if (x === 'intro') { const i = SECTIONS.find((v) => v.kind === 'intro'); return i ? i.id : null; }
+    return null;
+  }
   function parseHash() {
     let h = location.hash.slice(1);
     try { h = decodeURIComponent(h); } catch (e) {}
     if (!h) return null;
-    if (BYID.has(h)) return { sid: h };
+    let id = resolveId(h);
+    if (id) return { sid: id };
     let m = h.match(/^(.+)-(mirqat|tibi|lamaat)$/);
-    if (m && BYID.has(m[1])) return { sid: m[1], key: m[2] };
-    m = h.match(/^(?:r-)?(n-(.+)-([MTL])-(\d+))$/);
-    if (m && BYID.has(m[2])) return { sid: m[2], key: { M: 'mirqat', T: 'tibi', L: 'lamaat' }[m[3]], fn: (h.startsWith('r-') ? 'r-' : '') + m[1] };
+    if (m && (id = resolveId(m[1]))) return { sid: id, key: m[2] };
+    m = h.match(/^(r-)?n-(.+)-([MTL])-(\d+)$/);
+    if (m && (id = resolveId(m[2]))) return { sid: id, key: { M: 'mirqat', T: 'tibi', L: 'lamaat' }[m[3]], fn: (m[1] || '') + 'n-' + id + '-' + m[3] + '-' + m[4] };
     return null;
   }
   function go(hash, replace) {
@@ -959,6 +978,7 @@
     const app = $('app');
     if (v === 'read' && lastView === 'home' && !isWide()) homeScroll = window.scrollY;
     app.dataset.view = v;
+    $('skip').href = v === 'read' || isWide() ? '#reader-main' : '#q';
     if (v === 'home' && lastView === 'read' && !isWide()) window.scrollTo(0, homeScroll);
     lastView = v;
   }
@@ -972,7 +992,10 @@
     const p = parseHash();
     if (!p) {
       if (isWide()) { try { history.replaceState(null, '', '#' + SECTIONS[0].id); } catch (e) {} openSection({ sid: SECTIONS[0].id }); return; }
-      st.cur = null; setView('home'); markCurrent(); document.title = 'Mishkāt Commentary Reader'; return;
+      const prevCur = st.cur, wasRead = lastView === 'read';
+      st.cur = null; setView('home'); markCurrent(); document.title = 'Mishkāt Commentary Reader';
+      if (wasRead && prevCur) { const a = document.querySelector('#row-' + CSS.escape(prevCur) + ' a'); if (a) a.focus({ preventScroll: true }); }
+      return;
     }
     openSection(p);
   }
@@ -992,6 +1015,7 @@
     markCurrent();
     const fresh = changed;
     if (fresh) {
+      if (!isWide()) main.focus({ preventScroll: true });
       window.scrollTo(0, 0);
       animateIn(s, wasHome);
     }
@@ -1056,22 +1080,31 @@
   /* ---------- reading progress + scroll furniture ---------- */
   const prog = $('prog'), topBtn = $('top'), deck = $('deck');
   let ticking = false, topShown = false;
+  let padTop = 0;
+  const readPad = () => { padTop = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0; };
+  readPad();
+  window.addEventListener('resize', readPad, { passive: true });
   function update() {
     ticking = false;
-    if ($('app').dataset.view === 'read' || isWide()) {
-      const r = rd.getBoundingClientRect(), total = r.height - window.innerHeight;
+    // reads
+    const reading = $('app').dataset.view === 'read' || isWide();
+    const r = reading ? rd.getBoundingClientRect() : null;
+    const ih = window.innerHeight, y = window.scrollY;
+    const deckTop = deck.getBoundingClientRect().top, sideTop = $('side').scrollTop, wide = isWide();
+    // writes
+    if (r) {
+      const total = r.height - ih;
       const p = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 0;
       prog.style.transform = 'scaleX(' + p.toFixed(4) + ')';
     }
-    const y = window.scrollY, show = y > 900;
+    const show = y > 900;
     if (show !== topShown) {
       topShown = show;
       if (show) { topBtn.hidden = false; if (canAnimate()) M.animate(topBtn, { opacity: [0, 1], scale: [0.8, 1] }, { type: 'spring', stiffness: 500, damping: 30 }); }
       else if (canAnimate()) M.animate(topBtn, { opacity: 0, scale: 0.8 }, { duration: 0.15 }).then(() => { if (!topShown) topBtn.hidden = true; });
       else topBtn.hidden = true;
     }
-    const sideEl = $('side'), top = (parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0);
-    deck.classList.toggle('stuck', deck.getBoundingClientRect().top <= top + 1 && (isWide() ? sideEl.scrollTop > 0 : y > 0));
+    deck.classList.toggle('stuck', deckTop <= padTop + 1 && (wide ? sideTop > 0 : y > 0));
   }
   const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -1126,7 +1159,6 @@
     b.addEventListener('click', openWN); line.appendChild(b);
     $('content-info').textContent = 'Synced from artifact · rev ' + META.rev + ' · ' + (src.version || '') + ' · ' + fmtDate(META.syncedAt) + '.';
     $('open-wn').onclick = () => { $('dlg-settings').close(); openWN(); };
-    const firstB = BOOKS[0].book;
     const f = $('facts'); f.textContent = '';
     const li = (b, t) => { const x = el('li'); x.append(el('b', '', b), t); f.appendChild(x); };
     li(String(SECTIONS.length), ' sections');
@@ -1138,7 +1170,6 @@
       if (book.footer && book.footer.length) { const p = el('p', 'foot-dyn'); renderRuns(p, book.footer); ab.after(p); }
     });
     if (!BOOKS.some(({ book }) => book.footer && book.footer.length) && META.footer && META.footer.length) { const p = el('p', 'foot-dyn'); renderRuns(p, META.footer); ab.after(p); }
-    void firstB;
   }
   const lab = (id) => { const s = BYID.get(id); return s ? (s.n != null ? String(s.n) : 'Opening') : id; };
   function openWN() {
@@ -1179,50 +1210,77 @@
   /* ---------- offline: service worker, status, install ---------- */
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const status = $('status'), statusT = $('status-t');
+  const status = $('status'), statusT = $('status-text'), live = $('status-live');
   const singleFile = !!$('data-meta').textContent.trim();
-  function setStatus(s, t) { status.dataset.s = s; statusT.textContent = t; }
-  let swProgress = null, swVersion = '';
+  // The single-file build never registers a service worker, even when it is served over http(s).
+  const canSW = !singleFile && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.isSecureContext;
+  const ss = { ready: false, error: false, progress: null, version: '', announced: '' };
+  function announce(key, text) { if (ss.announced !== key) { ss.announced = key; live.textContent = text; } }
+  /* the only writer of the status text; the visible text is not a live region, only `live` is */
   function refreshStatus() {
-    if (!navigator.onLine && (status.dataset.ready === '1')) setStatus('offline', 'Offline · all sections available');
-    else if (status.dataset.ready === '1') setStatus('ready', singleFile && !canSW ? 'Offline copy · works anywhere' : 'Ready offline ✓');
-    else if (swProgress) setStatus('loading', 'Saving for offline… ' + swProgress.done + '/' + swProgress.total);
-    else setStatus('loading', 'Preparing offline copy…');
+    let s = 'loading', t;
+    if (singleFile) { s = navigator.onLine ? 'ready' : 'offline'; t = 'Offline copy · works anywhere'; }
+    else if (ss.ready) {
+      s = navigator.onLine ? 'ready' : 'offline';
+      t = navigator.onLine ? 'Ready offline ✓' : 'Offline · all sections available';
+      announce('ready', 'Ready offline');
+    } else if (ss.error) { t = 'Couldn’t save for offline — will retry when online'; announce('error', t); }
+    else if (ss.progress) { t = 'Saving for offline… ' + ss.progress.done + '/' + ss.progress.total; announce('saving', 'Saving for offline'); }
+    else if (!canSW) t = 'serviceWorker' in navigator ? 'Open over https to save offline' : 'Online only in this browser';
+    else t = 'Preparing offline copy…';
+    status.dataset.s = s;
+    if (statusT.textContent !== t) statusT.textContent = t;
     const pb = $('pbar');
-    if (swProgress && status.dataset.ready !== '1') { pb.hidden = false; $('pbar-i').style.transform = 'scaleX(' + (swProgress.done / swProgress.total) + ')'; } else pb.hidden = true;
+    if (ss.progress && !ss.ready && !singleFile) { pb.hidden = false; $('pbar-i').style.transform = 'scaleX(' + (ss.progress.done / ss.progress.total) + ')'; } else pb.hidden = true;
   }
-  window.addEventListener('online', refreshStatus); window.addEventListener('offline', refreshStatus);
-  const canSW = 'serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.isSecureContext;
+  window.addEventListener('online', () => { refreshStatus(); retryOffline(); }); window.addEventListener('offline', refreshStatus);
   function markReady(v) {
-    status.dataset.ready = '1'; if (v) swVersion = v;
-    $('offline-info').textContent = (standalone ? 'Installed on this device. ' : '') + 'The whole reader (all text, fonts and icons) is stored on this device' + (swVersion ? ' (' + swVersion + ')' : '') + ' and works without a connection.';
+    ss.ready = true; ss.error = false; if (v) ss.version = v;
+    $('offline-info').textContent = singleFile
+      ? 'This file holds the whole reader (text, fonts and icons). Keep it anywhere and open it with no connection.'
+      : (standalone ? 'Installed on this device. ' : '') + 'The whole reader (all text, fonts and icons) is stored on this device' + (ss.version ? ' (' + ss.version + ')' : '') + ' and works without a connection.';
     refreshStatus(); askPersist();
   }
-  if (singleFile && !canSW) { markReady(); }
-  if (canSW) {
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      const d = e.data || {};
-      if (d.type === 'progress') { swProgress = { done: d.done, total: d.total }; if (d.done >= d.total) markReady(d.version); else refreshStatus(); }
-      else if (d.type === 'status') { swProgress = { done: d.done, total: d.total }; if (d.total && d.done >= d.total) markReady(d.version); else refreshStatus(); }
-    });
-    if (navigator.serviceWorker.startMessages) navigator.serviceWorker.startMessages();
-    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+  let swReg = null, swWired = false;
+  function retryOffline() {
+    if (!canSW || ss.ready || !ss.error || !navigator.onLine) return;
+    ss.error = false; ss.announced = ''; refreshStatus();
+    if (swReg) swReg.update().catch(() => {}); else registerSW();
+  }
+  function registerSW() {
+    return navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+      swReg = reg;
       const askStatus = () => { const w = reg.active || navigator.serviceWorker.controller; if (w) w.postMessage({ type: 'status' }); };
       navigator.serviceWorker.ready.then(askStatus);
+      if (swWired) return;
+      swWired = true;
       const showUpdate = (w) => toast('New version available', 'Reload', () => { status.dataset.updating = '1'; w.postMessage('skip-waiting'); }, true);
       if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing; if (!nw) return;
         nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(nw); });
       });
-      document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.onLine) reg.update().catch(() => {}); });
-    }).catch(() => { if (singleFile) markReady(); else setStatus('loading', 'Online only in this browser'); });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.onLine) { reg.update().catch(() => {}); retryOffline(); } });
+    }).catch(() => { ss.error = true; refreshStatus(); });
+  }
+  if (singleFile) markReady();
+  else if (canSW) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      const d = e.data || {};
+      if (d.type === 'progress' || d.type === 'status') {
+        ss.progress = { done: d.done, total: d.total };
+        if (d.total && d.done >= d.total) markReady(d.version); else { ss.error = false; refreshStatus(); }
+      } else if (d.type === 'error') { ss.error = true; refreshStatus(); }
+    });
+    if (navigator.serviceWorker.startMessages) navigator.serviceWorker.startMessages();
+    registerSW();
     let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloading || !navigator.serviceWorker.controller) return;
       if (status.dataset.updating === '1') { reloading = true; location.reload(); }
     });
-  } else if (!singleFile) setStatus('loading', 'Open over https to save offline');
+    refreshStatus();
+  } else refreshStatus();
 
   let deferred = null;
   const installBtn = $('install');
@@ -1268,7 +1326,7 @@
         if (!k.startsWith(PFX) || !BYID.has(k.slice(PFX.length)) || !mergeNote(k, v)) continue;
         const cur = notes.get(k), rec = cur ? { id: k, text: cur.text, updated: cur.updated } : { id: k, text: '', updated: tombs.get(k) };
         await idbPut(rec);
-        if (window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e2) {} }
+        if (window.IkmalNotes && window.IkmalNotes.onLocalSave) { try { window.IkmalNotes.onLocalSave(rec); } catch (e2) {} }
         n++;
       }
       let stars = 0;

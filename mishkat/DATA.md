@@ -27,7 +27,7 @@ ever inserted with `innerHTML`.
   "footer": [ /* segments: the closing editorial note of the most recently synced artifact */ ],
   "changelog": [                             // newest first, at most 30 entries
     { "rev": 1, "at": "…", "version": "…", "book": "nikah",   // "footer": true when only/also the footer changed
-      "added": ["intro", "h3080", …], "removed": [], "changed": [ { "id": "h3081", "what": ["commentaries.mirqat.paras"] } ] }
+      "added": ["nikah-intro", "h3080", …], "removed": [], "changed": [ { "id": "h3081", "what": ["commentaries.mirqat.paras"] } ] }
   ]
 }
 ```
@@ -36,7 +36,9 @@ ever inserted with `innerHTML`.
 
 ```json
 {
-  "id": "h3080",                 // the artifact's section id ("intro" for the opening)
+  "id": "h3080",                 // unique across ALL books: "h<n>" for a hadeeth (Mishkāt numbers are
+                                 // global); any other section is "<book>-<artifact id>", e.g. "nikah-intro"
+  "srcId": "h3080",              // the artifact's own section id, for traceability ("intro" for nikah-intro)
   "kind": "hadeeth",             // "hadeeth" | "intro"
   "book": "nikah",
   "bab": null,                   // { "ar": "…", "en": null } once the page carries bāb headings (en null until known)
@@ -55,6 +57,8 @@ ever inserted with `innerHTML`.
       "centered": [ 2 ],                        // indices into paras printed centred (verse lines); usually []
       "editorial": [ [ /* segments */ ] ],      // extra .src lines, e.g. "Apparent misprints kept as printed: …"
       "footnotes": [ { "id": "n-h3080-M-1", "mark": "١", "body": [ /* segments */ ] } ],
+                                                // ids unique across all books; the opening's are
+                                                // namespaced too: "n-intro-T-1" -> "n-nikah-intro-T-1"
       "refs": [ [ /* segments */ ] ],           // p.ref lines (takhrīj and gradings), in order
       "grading": "[٣٠٩٢] ضعيف لإرساله."        // the p.ref line that grades the hadeeth, or null
     }
@@ -83,6 +87,11 @@ exactly as the artifact shows it, after whitespace runs collapse to one space.
   "أيها المُنكحُ الثُّريّا سُهيلاً ..."). Always present, usually `[]`. Render those paragraphs centred.
 - `books[].source` and `books[].footer`: per-book provenance, so syncing a second book's artifact
   does not lose the first book's. `meta.source` / `meta.footer` keep their meaning (latest sync).
+- Section ids: hadeeth `h<n>`, everything else `<book>-<srcId>` (`nikah-intro`), plus `srcId` with
+  the artifact's original id. Footnote ids `n-<srcId>-…` of such sections become `n-<id>-…`.
+  The sync aborts if a section or footnote id is already used by another book.
+- Text never contains bidi embedding/override/isolate controls (U+202A–202E, U+2066–2069): the sync
+  rejects them. The marks U+200E, U+200F (used around "/" in references) and U+061C may appear.
 - `changelog[].book` (the book that sync touched) and optional `changelog[].footer: true`.
 - `bab.en` may be `null`. Note the artifact's `<h2 class="bab">` currently carries faṣl headings
   (الفصل الثاني), which set `fasl`, not `bab`.

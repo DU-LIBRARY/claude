@@ -219,6 +219,7 @@ class ToolRuns(unittest.TestCase):
 
     def run_tool(self, *args, html=None):
         env = dict(os.environ, MISHKAT_ROOT=str(self.root))
+        env.pop('PYTHONUNBUFFERED', None)                   # stdout block-buffered, as in a pipe
         r = subprocess.run([sys.executable, str(self.root / 'tools' / TOOL.name), str(html or self.html), *args],
                            capture_output=True, text=True, env=env)
         return r
