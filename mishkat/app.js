@@ -1354,6 +1354,17 @@
     if (!r.ok) throw new Error(url + ' ' + r.status);
     return r.json();
   }
+  /* older builds called the opening section 'intro'; carry its note and star over to its current id */
+  function migrateIds() {
+    const first = SECTIONS.find((v) => v.kind === 'intro');
+    if (!first || first.id === 'intro' || BYID.has('intro')) return;
+    const old = PFX + 'intro', now = noteId(first.id);
+    if (notes.has(old) && !notes.has(now)) {
+      const rec = notes.get(old); notes.set(now, rec); notes.delete(old);
+      tombs.set(old, Date.now()); idbPut({ id: now, text: rec.text, updated: rec.updated }); idbPut({ id: old, text: '', updated: tombs.get(old) }); lsWrite();
+    }
+    if (st.saved.has('intro')) { st.saved.delete('intro'); st.saved.add(first.id); store.set('saved', [...st.saved]); }
+  }
   async function boot() {
     const ready = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 600))]) : Promise.resolve();
     ready.then(() => { themeSeg.place(false); modeSeg.place(false); intro(); });
@@ -1370,10 +1381,12 @@
     prepare();
     buildMetaUI(); buildChips(); buildJump();
     $('notes-count').textContent = notesSummary();
+    migrateIds();
     runSearch(true);
     measureSide();
     route();
     onScroll();
+    installBridge(); // only now: sync.js waits for window.IkmalNotes, and it must see loaded data and notes
   }
   function intro() {
     drawPattern(true);

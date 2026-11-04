@@ -27,7 +27,7 @@ html = re.sub(r'<link rel="manifest"[^>]*>\n', '', html)
 html = re.sub(r'<link rel="preload"[^>]*>\n', '', html)
 
 def blob(obj):
-    return json.dumps(obj, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+    return json.dumps(obj, ensure_ascii=False, separators=(',', ':')).replace('<', '\\u003c')
 
 meta = json.loads((APP / 'data/meta.json').read_text(encoding='utf-8'))
 blocks = '<script id="data-meta" type="application/json">' + blob(meta) + '</script>'

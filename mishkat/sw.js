@@ -1,4 +1,4 @@
-const VERSION = 'mishkat-v1.1.0';
+const VERSION = 'mishkat-v1.0.1';
 /* Offline cache for the Mishkāt Commentary Reader.
    Bump VERSION whenever any file below changes so visitors receive the update. */
 const ASSETS = [
@@ -44,13 +44,20 @@ self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
     const total = ASSETS.length;
-    let done = 0;
+    let done = 0, next = 0, failed = null;
     await tell({ type: 'progress', done, total, version: VERSION });
-    for (const url of ASSETS) {
-      await cache.add(new Request(url, { cache: 'reload' }));
-      done++;
-      await tell({ type: 'progress', done, total, version: VERSION });
+    // fetch with a small pool so a slow connection is not serialised, and report each completed file
+    async function worker() {
+      while (!failed && next < total) {
+        const url = ASSETS[next++];
+        try { await cache.add(new Request(url, { cache: 'reload' })); }
+        catch (err) { failed = failed || err; return; }
+        done++;
+        await tell({ type: 'progress', done, total, version: VERSION });
+      }
     }
+    await Promise.all(Array.from({ length: Math.min(6, total) }, worker));
+    if (failed) { await tell({ type: 'error', version: VERSION }); throw failed; }
   })());
 });
 
