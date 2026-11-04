@@ -224,7 +224,8 @@ li.e.cur::before{content:"";position:absolute;inset-block:10px;left:-2px;width:3
 .matn-ar{font-family:var(--ar-display);font-size:calc(var(--ar-size) * 1.3);line-height:2.05;direction:rtl;text-align:right;margin:0;transform-origin:right top;overflow-wrap:anywhere}
 .matn-gr{display:flex;flex-wrap:wrap;gap:6px}
 .mref{font-family:var(--ar);font-size:.62em;color:var(--muted);line-height:1.4}
-.matn .mref{display:inline}
+.mref{unicode-bidi:isolate}
+.matn .mref{display:inline-block;white-space:nowrap}
 .stack{display:grid;gap:14px;margin-top:16px}
 .tabs-wrap{margin-top:16px}
 .cm{background:var(--surface);border:1px solid var(--rule);border-radius:14px;min-width:0;position:relative}
@@ -380,7 +381,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
     <div class="wrap">
       <div class="sbox" role="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="ابحث… or number" aria-label="Search the hadeeth and commentaries" aria-describedby="count">
+        <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Search Arabic text or number" aria-label="Search the hadeeth and commentaries" aria-describedby="count">
         <span class="kbd" id="kbd" aria-hidden="true">/</span>
         <button id="clear" type="button" hidden>Clear</button>
       </div>

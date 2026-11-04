@@ -1133,7 +1133,7 @@
     const nums = SECTIONS.filter((s) => s.n != null).map((s) => s.n);
     if (nums.length) li(Math.min(...nums) + '–' + Math.max(...nums), ' hadeeth');
     li('3', ' commentaries');
-    const ab = $('about-p'); ab.parentNode.querySelectorAll('.foot-dyn').forEach((n) => n.remove());
+    const ab = $('about-p'); ab.hidden = BOOKS.some(({ book }) => book.footer && book.footer.length) || !!(META.footer && META.footer.length); ab.parentNode.querySelectorAll('.foot-dyn').forEach((n) => n.remove());
     BOOKS.forEach(({ book }) => {
       if (book.footer && book.footer.length) { const p = el('p', 'foot-dyn'); renderRuns(p, book.footer); ab.after(p); }
     });
