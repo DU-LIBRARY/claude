@@ -129,7 +129,7 @@
     return 'neutral';
   }
   // the chip shows only the verdict ("صحيح", "ضعيف لإرساله"); the full line stays printed under the commentary
-  const gradeVerdict = (line) => gradeShort(line).split(/\s*[،,]\s*|\s+(?=انظر|رواه|وانظر|وقد)/)[0];
+  const gradeVerdict = (line) => gradeShort(line).split(/\s*[،,.]\s+|\s*[،,]\s*|\s+(?=انظر|رواه|وانظر|وقد)/)[0].replace(/[.\s]+$/, '');
   const isGrade = (line) => gradeType(gradeShort(line)) !== 'neutral';
   function gradeChip(line) {
     const t = gradeVerdict(line);

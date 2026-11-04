@@ -41,7 +41,7 @@ def nows(s):
     return WS.sub('', s)
 
 
-FIXTURES = [FIXTURE, HERE / 'fixtures' / 'nikah-artifact-1793793535-584e.html', HERE / 'fixtures' / 'nikah-artifact-1793794906-a9c8.html']
+FIXTURES = [FIXTURE, HERE / 'fixtures' / 'nikah-artifact-1793793535-584e.html', HERE / 'fixtures' / 'nikah-artifact-1793794906-a9c8.html', HERE / 'fixtures' / 'nikah-artifact-1793795151-be3b.html']
 HTML = FIXTURE.read_text(encoding='utf-8')
 BOOK, SECTIONS, FOOTER, TITLE, GAPS, PAGE = sync.parse_page(HTML)
 FASL_EN = {'الفصل الأول': 'al-Faṣl al-Awwal', 'الفصل الثاني': 'al-Faṣl al-Thānī', 'الفصل الثالث': 'al-Faṣl al-Thālith'}
@@ -437,6 +437,15 @@ class ToolRuns(unittest.TestCase):
                      r'\1', HTML, count=1, flags=re.S)
         self.assertNotEqual(bad, HTML)
         self.assert_rejected(bad, 'h3083: needs exactly 3 commentaries')
+
+    def test_empty_commentary_without_note(self):
+        # "No comment on this hadeeth." makes an empty commentary legitimate; with no note at all it is broken
+        def strip(m):
+            sec = re.sub(r'<p class="ar">.*?</p>', '', m.group(0), flags=re.S)
+            return re.sub(r'<aside class="notes".*?</aside>', '', sec, flags=re.S)
+        bad = re.sub(r'<section class="h" id="h3083">.*?</section>', strip, HTML, count=1, flags=re.S)
+        self.assertNotEqual(bad, HTML)
+        self.assert_rejected(bad, 'commentary has no paragraphs and no editorial note')
 
     def test_dangling_footnote_ref(self):
         bad = HTML.replace('href="#n-h3080-M-1"', 'href="#n-h3080-M-9"', 1)

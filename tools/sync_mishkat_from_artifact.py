@@ -338,8 +338,10 @@ def parse_article(art, sec_id, page):
             raise Malformed(f'{ctx}: unexpected {el.where()} in commentary')
     if cite is None:
         raise Malformed(f'{ctx}: commentary has no citation line')
-    if not paras:
-        raise Malformed(f'{ctx}: commentary has no paragraphs')
+    # a commentator who says nothing on a hadeeth is marked by an editorial line ("No comment on this
+    # hadeeth."); without such a line, an empty commentary means the page is broken
+    if not paras and not editorial:
+        raise Malformed(f'{ctx}: commentary has no paragraphs and no editorial note')
 
     # footnote cross-references, all within this commentary
     refs_used = [r for p in paras for r in p if 'fn' in r]
