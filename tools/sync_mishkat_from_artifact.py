@@ -546,10 +546,17 @@ def what_changed(old, new):
 
 def atomic_write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        mode = path.stat().st_mode & 0o777
+    else:
+        umask = os.umask(0)
+        os.umask(umask)
+        mode = 0o666 & ~umask
     fd, tmp = tempfile.mkstemp(prefix='.' + path.name + '.', suffix='.tmp', dir=path.parent)
     try:
         with os.fdopen(fd, 'w', encoding='utf-8', newline='\n') as fh:
             fh.write(text)
+        os.chmod(tmp, mode)                     # mkstemp creates 0600; web servers need it readable
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):
