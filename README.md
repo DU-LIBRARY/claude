@@ -86,3 +86,59 @@ A second offline app at `…/siyar/`, in the same format as the Ikmāl index. It
   the build does this, and `python3 tools/reflow_siyar_text.py siyar/data/full` applies it to existing files.
   Only line breaks change, so the verbatim check still holds.
 - After changing any file in `siyar/`, bump `VERSION` in `siyar/sw.js`; after changing the volume files, bump `TEXT_REV` too.
+
+## Mishkāt Commentary Reader (`mishkat/`)
+
+A third offline app at `…/mishkat/`, in the same format as the Ikmāl index. It holds the hadeeth of
+*Mishkāt al-Maṣābīḥ* with three commentaries side by side: *Mirqāt al-Mafātīḥ* (al-Qārī), *Sharḥ al-Ṭībī*
+and *Lamaʿāt al-Tanqīḥ* (ʿAbd al-Ḥaqq al-Dihlawī). It starts with Kitāb al-Nikāḥ: the opening of the book
+and hadeeth 3080–3092. The text comes from the shared claude.ai artifact
+[Mishkāt Kitāb al-Nikāḥ](https://claude.ai/artifact/QxF39U6v4PWEtE3JRJ8PvR) and is updated only when you ask for it.
+
+| | What it is | How to use it |
+|---|---|---|
+| **Installable app** | `mishkat/`: a Progressive Web App. Every file is cached on the first visit. | Open `https://du-library.github.io/claude/mishkat/` once, wait for **Ready offline ✓**, then **Install** (Chrome, Edge, Android) or **Share → Add to Home Screen** (iPhone, iPad). |
+| **Single file** | `dist/mishkat-offline.html` (about 0.8 MB). Fonts, data and scripts are all inside. | Copy it anywhere (USB stick, a phone's Files app) and open it. No server, no internet. Google note sync is the only thing missing. |
+
+Features:
+
+- Search in Arabic with or without tashkeel, or by hadeeth number (Latin or Arabic-Indic digits). Optional search inside the commentaries.
+- A jump-to menu and deep links: `…/mishkat/#h3081`, `#intro`, `#h3081-tibi` (one commentary).
+- Compare: one commentary at a time, all three stacked (each one folds), or side by side on wide screens (two or three columns).
+- Footnotes on or off. Footnote marks and notes jump to each other. Gradings, takhrīj lines, PDF page refs and editorial notes are kept as printed.
+- Arabic text size, light, dark or system theme, and a reading-progress bar.
+- My notes and stars per hadeeth, saved on the device first (IndexedDB plus a localStorage copy). Export and import a JSON backup.
+- Copy or share a hadeeth with its citation, e.g. `Mirqāt 6/237–238 · PDF p. 238–239`.
+- A **Synced from artifact · rev · version · date** line, and **What's new** showing what the last sync added or changed.
+- Notes sync with Google sign-in, like the Ikmāl app. They use the same Firebase project and the same `users/{uid}/notes`
+  collection, under ids that start with `mishkat-`, so each app ignores the other's notes. `firestore.rules` is unchanged.
+  Stars and settings stay on the device and in the backup.
+
+Fonts: Amiri, Noto Naskh Arabic and IBM Plex Sans (SIL Open Font License), bundled in `mishkat/fonts/`.
+The app makes no request to any other site except Google sign-in, and only when you turn sync on.
+
+### Updating from the artifact ("sync mishkat")
+
+Nothing updates on its own. To pull the latest version of the artifact, say **"sync mishkat"** to Claude Code
+in this repository. Claude then:
+
+1. reads the artifact with its Artifact tool (never by scraping the page) and saves the HTML to its scratchpad,
+2. runs `python3 tools/sync_mishkat_from_artifact.py <saved.html> --version <artifact version id>`,
+3. shows you the summary (sections added, removed and changed, and what changed in each),
+4. commits and pushes to the branch.
+
+The script treats the page as data and never runs its scripts. It checks the shape (each hadeeth has its matn
+and all three commentaries, every footnote mark has its note, the numbers have no gaps) and stops without
+writing anything if the page is malformed. When content changed it writes `mishkat/data/`, bumps `VERSION`
+in `mishkat/sw.js` and rebuilds `dist/mishkat-offline.html`. When nothing changed it prints
+**Nothing to update.** and touches nothing. `--check` shows the diff without writing.
+
+After a sync is pushed and Pages redeploys, an installed app sees the new version the next time it opens
+online, shows **New version available · Reload**, and then works offline again with the new text.
+
+The data format is described in `mishkat/DATA.md`. It is organised by book, so another kitāb from a new
+artifact is added next to Kitāb al-Nikāḥ (add its Arabic name to the `KITAB` table in the sync script if it
+is not there yet).
+
+Tests: `python3 -m unittest discover -s tests/mishkat -p 'test_*.py'` (parser round trip, idempotency,
+malformed input) and the Playwright scripts in `tests/mishkat/` (offline, single file, update, Lighthouse).
