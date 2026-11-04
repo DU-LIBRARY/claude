@@ -57,7 +57,12 @@ FASL_BY_EN = {en: n for n, (_, en) in FASL.items()}
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source',
         'track', 'wbr'}
 WS = re.compile(r'[ \t\n\r\f]+')              # HTML whitespace only: RLM, NBSP etc. are kept
-TASHKEEL = re.compile('[ً-ْٰـ]')
+# Same set as the app's search normalisation: Arabic marks, Qurʾānic annotation signs, tatweel.
+TASHKEEL = re.compile('[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]')
+# Bidi embedding/override/isolate controls are rejected (they can reorder text invisibly).
+# The marks U+200E, U+200F and U+061C are allowed: the data uses U+200F around '/'.
+BIDI_CONTROLS = re.compile('[\u202a-\u202e\u2066-\u2069]')
+MAX_DEPTH = 200
 CITE = re.compile(r'^(?P<work>.+?) (?P<vol>\d+)/(?P<pages>\d+(?:[–-]\d+)?) · PDF p\. (?P<pdf>\d+(?:[–-]\d+)?)$')
 LABEL = re.compile(r'^Hadeeth (?P<n>\d+)(?: · (?P<fasl>al-Faṣl .+))?$')
 GRADING = re.compile(r'^\[[0-9٠-٩]+\]')
@@ -106,6 +111,8 @@ class TreeBuilder(HTMLParser):
         node = Node(tag, attrs, self.getpos()[0])
         self.stack[-1].children.append(node)
         if tag not in VOID:
+            if len(self.stack) > MAX_DEPTH:
+                raise Malformed(f'line {node.line}: elements nested more than {MAX_DEPTH} deep')
             self.stack.append(node)
 
     def handle_startendtag(self, tag, attrs):
@@ -142,12 +149,21 @@ def find_all(node, pred):
     return out
 
 
+def check_bidi(s, where):
+    m = BIDI_CONTROLS.search(s)
+    if m:
+        raise Malformed(f'{where}: bidi control character U+{ord(m[0]):04X} in text '
+                        f'near {s[max(0, m.start() - 20):m.start()]!r}')
+
+
 def plain_text(node):
     """Text of a node that may contain only text (no child elements)."""
     for c in node.children:
         if isinstance(c, Node):
             raise Malformed(f'unexpected <{c.tag}> inside {node.where()}')
-    return WS.sub(' ', ''.join(node.children)).strip()
+    t = WS.sub(' ', ''.join(node.children)).strip()
+    check_bidi(t, node.where())
+    return t
 
 
 def check_blank(node, s):
@@ -166,6 +182,7 @@ def runs_of(node, allow, ctx):
         for c in n.children:
             if isinstance(c, str):
                 if c:
+                    check_bidi(c, f'{ctx} {n.where()}')
                     out.append(dict(flags, t=c))
                 continue
             if c.tag == 'b' and 'b' in allow:
@@ -426,8 +443,21 @@ def parse_section(sec, state, book_id, page):
         gn = int(gm[1].translate(str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')))
         if n is not None and gn != n:
             page.warn(f'{sid}: grading line names hadeeth {gn}')
-    return {'id': sid, 'kind': kind, 'book': book_id, 'bab': state['bab'], 'fasl': fasl, 'n': n,
-            'label': label, 'matn': matn, 'grading': grading, 'commentaries': coms}
+    # Hadeeth ids stay "h<n>" (Mishkāt numbers are global); any other section (the opening) is
+    # namespaced by book so books never collide. Footnote ids built from it follow suit.
+    out_id = sid if kind == 'hadeeth' else f'{book_id}-{sid}'
+    if out_id != sid:
+        old_p, new_p = f'n-{sid}-', f'n-{out_id}-'
+        fix = lambda i: new_p + i[len(old_p):] if i.startswith(old_p) else i
+        for c in coms:
+            for f in c['footnotes']:
+                f['id'] = fix(f['id'])
+            for p in c['paras']:
+                for r in p:
+                    if 'fn' in r:
+                        r['fn'] = fix(r['fn'])
+    return {'id': out_id, 'srcId': sid, 'kind': kind, 'book': book_id, 'bab': state['bab'],
+            'fasl': fasl, 'n': n, 'label': label, 'matn': matn, 'grading': grading, 'commentaries': coms}
 
 
 def parse_page(html):
@@ -494,9 +524,10 @@ def parse_page(html):
     fdups = sorted({i for i in fn_ids if fn_ids.count(i) > 1})
     if fdups:
         raise Malformed('duplicate footnote ids: ' + ', '.join(fdups))
-    if nav_ids is not None and nav_ids != ids:
-        missing = [i for i in nav_ids if i not in ids]
-        extra = [i for i in ids if i not in nav_ids]
+    src_ids = [s['srcId'] for s in sections]
+    if nav_ids is not None and nav_ids != src_ids:
+        missing = [i for i in nav_ids if i not in src_ids]
+        extra = [i for i in src_ids if i not in nav_ids]
         raise Malformed('the page menu and the sections disagree'
                         + (f'; menu lists missing sections {", ".join(missing)}' if missing else '')
                         + (f'; sections not in the menu {", ".join(extra)}' if extra else '')
@@ -522,7 +553,7 @@ def dumps(obj):
 
 def what_changed(old, new):
     parts = []
-    for k in ('kind', 'book', 'bab', 'fasl', 'n', 'label', 'matn', 'grading'):
+    for k in ('srcId', 'kind', 'book', 'bab', 'fasl', 'n', 'label', 'matn', 'grading'):
         if old.get(k) != new.get(k):
             parts.append(k)
     oc = {c['key']: c for c in old.get('commentaries', [])}
@@ -631,6 +662,19 @@ def main(argv=None):
     added = [i for i in nm if i not in om]
     removed = [i for i in om if i not in nm]
     changed = [{'id': i, 'what': what_changed(om[i], nm[i])} for i in nm if i in om and om[i] != nm[i]]
+    # ids must be unique across ALL books, not just this page
+    mine = {s['id'] for s in sections}
+    my_fns = {f['id'] for s in sections for c in s['commentaries'] for f in c['footnotes']}
+    for b in (meta or {}).get('books', []):
+        if b['id'] == book['id']:
+            continue
+        other = load_json(data_dir / b['file']) or []
+        clash = sorted(mine & {s['id'] for s in other})
+        fclash = sorted(my_fns & {f['id'] for s in other for c in s['commentaries'] for f in c['footnotes']})
+        if clash or fclash:
+            print(f'error: ids already used by book {b["id"]!r}: ' + ', '.join(clash + fclash)
+                  + '\nNothing was written.', file=sys.stderr)
+            return 1
     old_entry = next((b for b in (meta or {}).get('books', []) if b['id'] == book['id']), None)
     old_footer = old_entry.get('footer', meta.get('footer')) if old_entry else None
     footer_changed = old_entry is not None and old_footer != footer
@@ -704,6 +748,7 @@ def main(argv=None):
         print(f'WARNING: {build.relative_to(root)} does not exist yet; single-file build skipped')
     else:
         env = dict(os.environ, MISHKAT_ROOT=str(root))
+        sys.stdout.flush()                      # keep our summary ahead of the build's output
         r = subprocess.run([sys.executable, str(build)], cwd=root, env=env)
         if r.returncode:
             print(f'error: {build.name} failed (exit {r.returncode}); data was written', file=sys.stderr)

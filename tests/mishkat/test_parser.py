@@ -49,12 +49,15 @@ class RoundTrip(unittest.TestCase):
     def setUpClass(cls):
         cls.soup = BeautifulSoup(HTML, 'html.parser')
         cls.secs = cls.soup.select('section.h')
-        cls.by_id = {s['id']: s for s in SECTIONS}
+        cls.by_id = {s['srcId']: s for s in SECTIONS}           # keyed by the page's own ids
 
     def test_sections_and_book(self):
-        self.assertEqual([s['id'] for s in self.secs], [s['id'] for s in SECTIONS])
+        self.assertEqual([s['id'] for s in self.secs], [s['srcId'] for s in SECTIONS])
+        # hadeeth ids are global ("h<n>"); the opening is namespaced by book
+        self.assertEqual([s['id'] for s in SECTIONS],
+                         ['nikah-intro'] + [f'h{n}' for n in range(3080, 3093)])
         self.assertEqual(len(SECTIONS), 14)
-        self.assertEqual(SECTIONS[0]['id'], 'intro')
+        self.assertEqual((SECTIONS[0]['id'], SECTIONS[0]['srcId']), ('nikah-intro', 'intro'))
         self.assertEqual([s['n'] for s in SECTIONS[1:]], list(range(3080, 3093)))
         self.assertEqual(BOOK['id'], 'nikah')
         self.assertEqual((BOOK['first'], BOOK['last'], BOOK['count']), (3080, 3092, 14))
@@ -117,9 +120,11 @@ class RoundTrip(unittest.TestCase):
                 self.assertEqual(len(sups), len(fn_runs), where)
                 self.assertEqual(len(fn_runs), len(c['footnotes']), where)
                 self.assertEqual(len(lis), len(c['footnotes']), where)
-                self.assertEqual([sp.a['href'][1:] for sp in sups], [r['fn'] for r in fn_runs])
+                # footnote ids follow the section id (n-intro-T-1 -> n-nikah-intro-T-1)
+                ns = lambda i: i.replace(f'n-{s["srcId"]}-', f'n-{s["id"]}-', 1)
+                self.assertEqual([ns(sp.a['href'][1:]) for sp in sups], [r['fn'] for r in fn_runs])
                 self.assertEqual([norm(sp.get_text()) for sp in sups], [r['mark'] for r in fn_runs])
-                self.assertEqual([li['id'] for li in lis], [f['id'] for f in c['footnotes']])
+                self.assertEqual([ns(li['id']) for li in lis], [f['id'] for f in c['footnotes']])
                 self.assertEqual([norm(li.get_text()) for li in lis], [text(f['body']) for f in c['footnotes']])
                 ids = {f['id'] for f in c['footnotes']}
                 self.assertTrue(all(r['fn'] in ids for r in fn_runs))
@@ -204,7 +209,8 @@ class ToolRuns(unittest.TestCase):
         (self.root / 'tools' / 'build_mishkat_single.py').write_text(
             'import os, pathlib\n'
             'p = pathlib.Path(os.environ["MISHKAT_ROOT"]) / "build-marker"\n'
-            'p.write_text(p.read_text() + "x" if p.exists() else "x")\n', encoding='utf-8')
+            'p.write_text(p.read_text() + "x" if p.exists() else "x")\n'
+            'print("BUILD-RAN")\n', encoding='utf-8')
         self.html = self.tmp / 'page.html'
         self.html.write_text(HTML, encoding='utf-8')
 
@@ -233,6 +239,9 @@ class ToolRuns(unittest.TestCase):
         r1 = self.run_tool('--version', 'test-1')
         self.assertEqual(r1.returncode, 0, r1.stderr)
         self.assertIn('14 sections: 14 added, 0 removed, 0 changed', r1.stdout)
+        # summary, writes and VERSION bump are printed before the build's own output
+        self.assertLess(r1.stdout.index('14 sections:'), r1.stdout.index('BUILD-RAN'))
+        self.assertLess(r1.stdout.index('Service worker version'), r1.stdout.index('BUILD-RAN'))
         v1 = self.version()
         self.assertNotEqual(v0, v1)
         self.assertEqual(self.marker(), 'x')
@@ -277,15 +286,40 @@ class ToolRuns(unittest.TestCase):
 
     def test_second_book_is_added_not_overwritten(self):
         self.assertEqual(self.run_tool().returncode, 0)
+        # another book's page holding only its opening section
         other = HTML.replace('<h1 dir="rtl">كتاب النكاح</h1>', '<h1 dir="rtl">كتاب البيوع</h1>')
+        other = re.sub(r'<section class="h" id="h\d+">.*?</section>', '', other, flags=re.S)
+        other = re.sub(r'<option value="h\d+">\d+</option>', '', other)
+        other = re.sub(r'<h2 class="bab"[^>]*>.*?</h2>', '', other)
         p = self.tmp / 'other.html'
         p.write_text(other, encoding='utf-8')
         r = self.run_tool(html=p)
         self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('added: buyu-intro', r.stdout)
         m = self.meta()
         self.assertEqual(sorted(b['id'] for b in m['books']), ['buyu', 'nikah'])
-        self.assertTrue((self.root / 'mishkat' / 'data' / 'nikah.json').exists())
-        self.assertTrue((self.root / 'mishkat' / 'data' / 'buyu.json').exists())
+        data = self.root / 'mishkat' / 'data'
+        nikah = json.loads((data / 'nikah.json').read_text(encoding='utf-8'))
+        buyu = json.loads((data / 'buyu.json').read_text(encoding='utf-8'))
+        self.assertEqual(len(nikah), 14)
+        self.assertEqual([s['id'] for s in buyu], ['buyu-intro'])
+        self.assertEqual(buyu[0]['srcId'], 'intro')
+        self.assertTrue(all(f['id'].startswith('n-buyu-intro-')
+                            for c in buyu[0]['commentaries'] for f in c['footnotes']))
+        # syncing nikah again is still a no-op
+        self.assertEqual(self.run_tool().stdout.strip(), 'Nothing to update.')
+
+    def test_id_collision_across_books_aborts(self):
+        self.assertEqual(self.run_tool().returncode, 0)
+        other = HTML.replace('<h1 dir="rtl">كتاب النكاح</h1>', '<h1 dir="rtl">كتاب البيوع</h1>')
+        p = self.tmp / 'other.html'
+        p.write_text(other, encoding='utf-8')
+        before = snapshot(self.root)
+        r = self.run_tool(html=p)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("ids already used by book 'nikah': h3080", r.stderr)
+        self.assertIn('Nothing was written.', r.stderr)
+        self.assertEqual(snapshot(self.root), before)
 
     def test_gap_is_warning_unless_strict(self):
         gapped = re.sub(r'<section class="h" id="h3085">.*?</section>', '', HTML, flags=re.S)
@@ -334,6 +368,34 @@ class ToolRuns(unittest.TestCase):
     def test_unknown_inline_tag(self):
         bad = HTML.replace('أي امتحاناً وبلية', 'أي <i>امتحاناً</i> وبلية', 1)
         self.assert_rejected(bad, 'unexpected <i')
+
+    def test_deep_nesting(self):
+        deep = '<div>' * 200000 + '</div>' * 200000
+        bad = HTML.replace('<footer>', deep + '<footer>', 1)
+        self.assert_rejected(bad, 'nested more than 200 deep')
+        with self.assertRaises(sync.Malformed):              # in-process too: no RecursionError
+            sync.parse_page(bad)
+
+    def test_bidi_override_rejected(self):
+        for ch in ('\u202e', '\u202a', '\u2066', '\u2069'):
+            bad = HTML.replace('أي امتحاناً وبلية', 'أي امتحاناً' + ch + ' وبلية', 1)
+            with self.assertRaises(sync.Malformed) as cm:
+                sync.parse_page(bad)
+            self.assertIn(f'U+{ord(ch):04X}', str(cm.exception))
+            self.assertIn('h3085/mirqat', str(cm.exception))
+        bad = HTML.replace('أي امتحاناً وبلية', 'أي امتحاناً\u202e وبلية', 1)
+        self.assert_rejected(bad, 'bidi control character U+202E')
+
+    def test_bidi_marks_kept(self):
+        # U+200F is used by the data around "/"; U+200E and U+061C are allowed too
+        self.assertIn('\u200f', json.dumps(SECTIONS, ensure_ascii=False))
+        ok = HTML.replace('أي امتحاناً وبلية', 'أي امتحاناً\u200e\u061c وبلية', 1)
+        sync.parse_page(ok)
+
+    def test_tashkeel_matches_app(self):
+        for cp in [*range(0x610, 0x61B), *range(0x64B, 0x660), 0x670, *range(0x6D6, 0x6EE), 0x640]:
+            self.assertEqual(sync.TASHKEEL.sub('', 'ك' + chr(cp) + 'ت'), 'كت', hex(cp))
+        self.assertEqual(sync.TASHKEEL.sub('', 'كِتَابُ النِّكَاحِ'), 'كتاب النكاح')
 
     def test_truncated(self):
         self.assert_rejected(HTML[:len(HTML) // 2], 'truncated')
