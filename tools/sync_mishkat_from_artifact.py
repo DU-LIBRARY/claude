@@ -452,13 +452,18 @@ def parse_section(sec, state, book_id, page):
         raise Malformed(f'{sid}: unexpected {bad[0].where()} among the commentaries')
     coms = [parse_article(a, sid, page) for a in arts]
     keys = [c['key'] for c in coms]
-    if sorted(keys) != sorted(KEY_ORDER) or len(keys) != 3:
+    # every hadeeth carries all three commentaries; an opening (of the book or of a bāb) may omit a
+    # commentator who has nothing on the title (al-Ṭībī on Bāb 3), but never repeat one
+    partial_ok = kind != 'hadeeth' and keys and len(set(keys)) == len(keys) and set(keys) <= set(KEY_ORDER)
+    if partial_ok and len(keys) < 3:
+        page.warn(f'{sid}: opening has {len(keys)} commentaries (no {", ".join(k for k in KEY_ORDER if k not in keys)})')
+    elif sorted(keys) != sorted(KEY_ORDER) or len(keys) != 3:
         missing = [k for k in KEY_ORDER if k not in keys]
         dup = sorted({k for k in keys if keys.count(k) > 1})
         raise Malformed(f'{sid}: needs exactly 3 commentaries ({", ".join(KEY_ORDER)}); '
                         f'found {len(keys)}' + (f', missing {", ".join(missing)}' if missing else '')
                         + (f', duplicated {", ".join(dup)}' if dup else ''))
-    if keys != KEY_ORDER:
+    if keys != [k for k in KEY_ORDER if k in keys]:
         page.warn(f'{sid}: commentaries reordered from {keys}')
         coms.sort(key=lambda c: KEY_ORDER.index(c['key']))
     grading = [c['grading'] for c in coms if c['grading']]

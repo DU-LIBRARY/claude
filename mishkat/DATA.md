@@ -51,7 +51,7 @@ ever inserted with `innerHTML`.
   "label": "Hadeeth 3080 · al-Faṣl al-Awwal",   // the .num line as printed
   "matn": [ /* segments */ ],    // includes { "t": "[خ: ٥٠٦٦، م: ١٤٠٠]", "ref": true } runs
   "grading": [ "[٣٠٩٢] ضعيف لإرساله." ],      // every grading line found under any commentary (may be empty)
-  "commentaries": [              // always exactly 3, in this order
+  "commentaries": [              // a hadeeth always has all 3, in this order; an opening (intro or bāb) may omit a commentator with nothing on the title
     {
       "key": "mirqat",           // "mirqat" | "tibi" | "lamaat"
       "src": "مرقاة المفاتيح",   // the article heading
