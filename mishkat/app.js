@@ -705,7 +705,7 @@
       c.footnotes.forEach((f) => {
         const li = el('li'); li.id = f.id; li.lang = 'ar';
         renderRuns(li, f.body, { words: st.words });
-        const back = el('a', 'fnback', ' ↩︎'); back.href = '#r-' + f.id; back.setAttribute('aria-label', 'Back to the text'); back.title = 'Back to the text';
+        const back = el('a', 'fnback', ' رجوع'); back.href = '#r-' + f.id; back.setAttribute('aria-label', 'Back to the text'); back.title = 'Back to the text';
         li.appendChild(back); ol.appendChild(li);
       });
       aside.appendChild(ol); inner.appendChild(aside);
