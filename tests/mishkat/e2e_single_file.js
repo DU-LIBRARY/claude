@@ -52,7 +52,7 @@ async function run(browser, R, vp) {
   const syncText = (await page.textContent('#sync-box')).trim();
   R.check(`[${label}] sync area says "Sync is available in the web app."`, syncText === 'Sync is available in the web app.', syncText);
   const rows = await page.locator('#list li.e').count();
-  R.check(`[${label}] list renders 14 sections`, rows === 14 && rows === SECTIONS.length, rows);
+  R.check(`[${label}] list renders every section`, rows === SECTIONS.length, rows);
 
   // search
   const want = SECTIONS.filter((s) => nrm(matnOf(s)).includes(nrm('الشباب'))).length;

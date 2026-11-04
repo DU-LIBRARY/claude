@@ -271,8 +271,11 @@
   const EN_SHORT = { mirqat: 'Mirqāt', tibi: 'al-Ṭībī', lamaat: 'Lamaʿāt' };
   const q = $('q'), list = $('list');
 
-  const numLabel = (s) => (s.n != null ? String(s.n) : 'Opening');
-  const titleOf = (s) => (s.n != null ? 'Hadeeth ' + s.n : 'Opening of the book');
+  const isBab = (s) => s.kind === 'bab' && s.bab;
+  const numLabel = (s) => (s.n != null ? String(s.n) : isBab(s) ? 'Bāb ' + s.bab.n : 'Opening');
+  const titleOf = (s) => (s.n != null ? 'Hadeeth ' + s.n : isBab(s) ? 'Opening of Bāb ' + s.bab.n : 'Opening of the book');
+  // faṣl numbering restarts in every bāb, so a faṣl is identified by book + bāb + faṣl
+  const faslKey = (s) => s._book.id + ':' + (s.bab ? s.bab.n : 0) + ':' + s.fasl.n;
 
   /* ---------- segmented controls with a sliding thumb (translateX only; columns are equal width) ---------- */
   function makeSeg(root, attr, value, onPick, sel) {
@@ -432,8 +435,9 @@
     const host = $('chips'); host.textContent = '';
     const defs = [['all', 'All', SECTIONS.length], ['saved', 'Saved', st.saved.size], ['notes', 'With notes', [...notes.keys()].filter((k) => BYID.has(k.slice(PFX.length))).length]];
     const fasls = new Map();
-    SECTIONS.forEach((s) => { if (s.fasl) fasls.set(s._book.id + ':' + s.fasl.n, s.fasl); });
-    if (fasls.size > 1) fasls.forEach((f, k) => defs.push(['f:' + k, f.ar, SECTIONS.filter((s) => s.fasl && s._book.id + ':' + s.fasl.n === k).length, true]));
+    const manyBabs = new Set(SECTIONS.filter((s) => s.fasl).map((s) => (s.bab ? s.bab.n : 0))).size > 1;
+    SECTIONS.forEach((s) => { if (s.fasl) fasls.set(faslKey(s), (manyBabs && s.bab ? 'باب ' + arNum(s.bab.n) + ' · ' : '') + s.fasl.ar); });
+    if (fasls.size > 1) fasls.forEach((f, k) => defs.push(['f:' + k, f, SECTIONS.filter((s) => s.fasl && faslKey(s) === k).length, true]));
     defs.forEach(([k, label, n, ar]) => {
       const b = el('button', 'chip' + (ar ? ' ar' : ''));
       b.type = 'button'; b.dataset.k = k; b.setAttribute('aria-pressed', String(st.filter === k));
@@ -459,7 +463,7 @@
     if (f === 'all') return true;
     if (f === 'saved') return st.saved.has(s.id);
     if (f === 'notes') return notes.has(noteId(s.id));
-    if (f.startsWith('f:')) return s.fasl && f === 'f:' + s._book.id + ':' + s.fasl.n;
+    if (f.startsWith('f:')) return s.fasl && f === 'f:' + faslKey(s);
     return true;
   }
   function snippet(s, key, words) {
@@ -582,7 +586,7 @@
         let fresh = !ol;
         if (s._book.id !== lastBook) { lastBook = s._book.id; lastFasl = null; lastBab = null; frag.appendChild(groupHeading('book', s._book.ar, s._book.en)); fresh = true; }
         const bk = s.bab ? s.bab.ar : null;
-        const fk = s.fasl ? s.fasl.n + '|' + s.fasl.ar : null;
+        const fk = s.fasl ? faslKey(s) : null;
         if (bk && bk !== lastBab) { lastBab = bk; lastFasl = null; group(groupHeading('bab', s.bab.ar, s.bab.en || '')); fresh = false; }
         if (fk && fk !== lastFasl) { lastFasl = fk; group(groupHeading('fasl', s.fasl.ar, s.fasl.en)); fresh = false; }
         if (fresh) group(null, s._book.en + ': opening');
@@ -671,7 +675,7 @@
   let flipFrom = null, cameFromList = false;
 
   function cite(s, c) {
-    return '— Mishkāt al-Maṣābīḥ ' + (s.n != null ? s.n : '(opening of ' + s._book.en + ')') + (c ? ' · ' + c.cite : '');
+    return '— Mishkāt al-Maṣābīḥ ' + (s.n != null ? s.n : isBab(s) ? '(opening of Bāb ' + s.bab.n + ', ' + s._book.en + ')' : '(opening of ' + s._book.en + ')') + (c ? ' · ' + c.cite : '');
   }
   function linkTo(s, c) { return location.href.split('#')[0] + '#' + s.id + (c ? '-' + c.key : ''); }
 
@@ -1136,9 +1140,10 @@
     const g = $('jump-grid'); g.textContent = '';
     let lastF = null;
     SECTIONS.forEach((s) => {
-      const fk = s.fasl ? s.fasl.ar : null;
-      if (s.n != null && fk !== lastF) { lastF = fk; if (fk) { const l = el('div', 'lbl', s.fasl.en); l.style.gridColumn = '1/-1'; l.style.marginTop = '6px'; g.appendChild(l); } }
-      const a = el('a', s.n == null ? 'wide' : '', s.n == null ? 'Opening of ' + s._book.en : String(s.n));
+      const fk = s.fasl ? faslKey(s) : null;
+      if (s.n != null && fk !== lastF) { lastF = fk; if (fk) { const l = el('div', 'lbl', (s.bab ? 'Bāb ' + s.bab.n + ' · ' : '') + s.fasl.en); l.style.gridColumn = '1/-1'; l.style.marginTop = '6px'; g.appendChild(l); } }
+      if (s.n == null) lastF = null;
+      const a = el('a', s.n == null ? 'wide' : '', s.n == null ? (isBab(s) ? 'Opening of Bāb ' + s.bab.n : 'Opening of ' + s._book.en) : String(s.n));
       a.href = '#' + s.id; a.dataset.id = s.id; a.title = titleOf(s);
       g.appendChild(a);
     });

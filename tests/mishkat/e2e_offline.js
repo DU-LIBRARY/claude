@@ -79,7 +79,7 @@ async function run(browser, srv, vp, R) {
   const keys = await page.evaluate(() => caches.keys());
   R.check(`[${label}] cache ${VERSION} present`, keys.includes(VERSION), JSON.stringify(keys));
   const rows = await page.locator('#list li.e').count();
-  R.check(`[${label}] 14 rows listed online`, rows === SECTIONS.length, rows);
+  R.check(`[${label}] every section listed online`, rows === SECTIONS.length, rows);
 
   // 2. go offline and reload
   await ctx.setOffline(true);

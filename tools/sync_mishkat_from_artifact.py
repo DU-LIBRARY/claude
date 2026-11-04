@@ -50,9 +50,15 @@ KEY_ORDER = [key for key, _, _ in COMMENTARIES]
 
 FASL = {1: ('الفصل الأول', 'al-Faṣl al-Awwal'),
         2: ('الفصل الثاني', 'al-Faṣl al-Thānī'),
-        3: ('الفصل الثالث', 'al-Faṣl al-Thālith')}
+        3: ('الفصل الثالث', 'al-Faṣl al-Thālith'),
+        4: ('الفصل الرابع', 'al-Faṣl al-Rābiʿ'),
+        5: ('الفصل الخامس', 'al-Faṣl al-Khāmis')}
 FASL_BY_AR = {ar: n for n, (ar, _) in FASL.items()}
 FASL_BY_EN = {en: n for n, (_, en) in FASL.items()}
+# A bāb heading as the page prints it: "(١) باب النظر إلى المخطوبة وبيان العورات"
+BAB_HEAD = re.compile(r'^\((?P<n>[0-9٠-٩]+)\) (?P<ar>باب .+)$')
+BAB_LABEL = re.compile(r'^Opening of Bāb (?P<n>\d+)$')
+DIGITS = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
 
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source',
         'track', 'wbr'}
@@ -375,7 +381,7 @@ def parse_article(art, sec_id, page):
 
 def parse_section(sec, state, book_id, page):
     sid = sec.attrs.get('id') or ''
-    if not (sid == 'intro' or re.fullmatch(r'h\d+', sid)):
+    if not (sid == 'intro' or re.fullmatch(r'[hb]\d+', sid)):
         raise Malformed(f'{sec.where()}: unexpected section id {sid!r}')
     for c in sec.children:
         check_blank(sec, c)
@@ -399,6 +405,22 @@ def parse_section(sec, state, book_id, page):
 
     if sid == 'intro':
         kind, n, fasl = 'intro', None, None
+        if label != 'Opening of the book':
+            raise Malformed(f'{sid}: unexpected label {label!r}')
+        if state['bab'] is not None:
+            raise Malformed(f'{sid}: the book opening comes after a bāb heading')
+    elif sid.startswith('b'):
+        kind, n, fasl = 'bab', None, None
+        m = BAB_LABEL.match(label)
+        if not m:
+            raise Malformed(f'{sid}: cannot read the label {label!r}')
+        k = int(sid[1:])
+        if int(m['n']) != k:
+            raise Malformed(f'{sid}: label says bāb {m["n"]}')
+        if state['bab'] is None or state['bab']['n'] != k:
+            raise Malformed(f'{sid}: bāb opening without a matching "({k}) باب …" heading before it')
+        if state['fasl'] is not None:
+            raise Malformed(f'{sid}: bāb opening after a faṣl heading')
     else:
         m = LABEL.match(label)
         if not m:
@@ -440,7 +462,7 @@ def parse_section(sec, state, book_id, page):
     grading = [c['grading'] for c in coms if c['grading']]
     for g in grading:
         gm = re.match(r'^\[([0-9٠-٩]+)\]', g)
-        gn = int(gm[1].translate(str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')))
+        gn = int(gm[1].translate(DIGITS))
         if n is not None and gn != n:
             page.warn(f'{sid}: grading line names hadeeth {gn}')
     # Hadeeth ids stay "h<n>" (Mishkāt numbers are global); any other section (the opening) is
@@ -497,13 +519,21 @@ def parse_page(html):
             sections.append(parse_section(el, state, book_id, page))
         elif el.tag == 'h2' and el.has('bab'):
             head = plain_text(el)
-            if TASHKEEL.sub('', head) in {TASHKEEL.sub('', k) for k in FASL_BY_AR}:
-                state['fasl'] = {TASHKEEL.sub('', k): v for k, v in FASL_BY_AR.items()}[TASHKEEL.sub('', head)]
+            fasl_ar = {TASHKEEL.sub('', k): v for k, v in FASL_BY_AR.items()}
+            bm = BAB_HEAD.match(head)
+            if TASHKEEL.sub('', head) in fasl_ar:
+                state['fasl'] = fasl_ar[TASHKEEL.sub('', head)]
             elif head.startswith('الفصل'):
                 raise Malformed(f'unknown faṣl heading {head!r}')
+            elif bm:
+                bn = int(bm['n'].translate(DIGITS))
+                prev = state['bab']['n'] if state['bab'] else 0
+                if bn != prev + 1:
+                    page.warn(f'bāb heading ({bn}) follows bāb {prev}')
+                state['bab'] = {'n': bn, 'ar': bm['ar'], 'en': None}
+                state['fasl'] = None            # the faṣl headings that follow apply within the bāb
             else:
-                state['bab'] = {'ar': head, 'en': None}
-                state['fasl'] = None
+                raise Malformed(f'unrecognised heading {head!r} (expected "(N) باب …" or a faṣl)')
         elif el.tag == 'footer':
             if footer is not None:
                 raise Malformed('more than one <footer>')
