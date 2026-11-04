@@ -520,11 +520,12 @@
     else { const b = el('b', '', String(n)); $('count').append(b, ' of ' + total + ' sections'); }
   }
 
+  let ghN = 0;
   function groupHeading(cls, ar, en) {
-    const li = el('li', 'gh ' + cls); li.setAttribute('role', 'presentation');
+    const h = el(cls === 'book' ? 'h2' : 'h3', 'gh ' + cls); h.id = 'gh-' + (++ghN);
     const a = el('span', 'ar', ar); a.lang = 'ar'; a.dir = 'rtl';
-    li.append(el('span', 'en', en || ''), a);
-    return li;
+    h.append(el('span', 'en', en || ''), a);
+    return h;
   }
   function rowFor(h) {
     const s = h.s;
@@ -563,21 +564,30 @@
     return li;
   }
   function renderList(animate) {
-    list.textContent = '';
+    list.textContent = ''; ghN = 0;
     const grouped = !q.value.trim();
     const frag = document.createDocumentFragment();
-    let lastBook = null, lastFasl = null, lastBab = null;
+    let lastBook = null, lastFasl = null, lastBab = null, ol = null;
     const rows = [];
+    // every group is its own <section> with a real heading and its own <ol>, so the list markup stays valid
+    function group(heading, label) {
+      const sec = el('section', 'lg');
+      if (heading) { sec.setAttribute('aria-labelledby', heading.id); sec.appendChild(heading); } else sec.setAttribute('aria-label', label);
+      ol = el('ol', 'list'); sec.appendChild(ol); frag.appendChild(sec);
+    }
+    if (!grouped) group(null, 'Search results');
     st.hits.forEach((h) => {
       const s = h.s;
       if (grouped) {
-        if (s._book.id !== lastBook) { lastBook = s._book.id; lastFasl = null; lastBab = null; frag.appendChild(groupHeading('book', s._book.ar, s._book.en)); }
+        let fresh = !ol;
+        if (s._book.id !== lastBook) { lastBook = s._book.id; lastFasl = null; lastBab = null; frag.appendChild(groupHeading('book', s._book.ar, s._book.en)); fresh = true; }
         const bk = s.bab ? s.bab.ar : null;
-        if (bk && bk !== lastBab) { lastBab = bk; frag.appendChild(groupHeading('bab', s.bab.ar, s.bab.en || '')); }
         const fk = s.fasl ? s.fasl.n + '|' + s.fasl.ar : null;
-        if (fk && fk !== lastFasl) { lastFasl = fk; frag.appendChild(groupHeading('fasl', s.fasl.ar, s.fasl.en)); }
+        if (bk && bk !== lastBab) { lastBab = bk; lastFasl = null; group(groupHeading('bab', s.bab.ar, s.bab.en || '')); fresh = false; }
+        if (fk && fk !== lastFasl) { lastFasl = fk; group(groupHeading('fasl', s.fasl.ar, s.fasl.en)); fresh = false; }
+        if (fresh) group(null, s._book.en + ': opening');
       }
-      const li = rowFor(h); rows.push(li); frag.appendChild(li);
+      const li = rowFor(h); rows.push(li); ol.appendChild(li);
     });
     list.appendChild(frag);
     const empty = $('empty'); empty.hidden = st.hits.length > 0;
@@ -1246,7 +1256,7 @@
   function retryOffline() {
     if (!canSW || ss.ready || !ss.error || !navigator.onLine) return;
     ss.error = false; ss.announced = ''; refreshStatus();
-    if (swReg) swReg.update().catch(() => {}); else registerSW();
+    registerSW().then(() => { if (swReg) swReg.update().catch(() => {}); });
   }
   function registerSW() {
     return navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
@@ -1300,6 +1310,37 @@
     } else if (isIOS) openDialog($('dlg-ios'));
   });
   window.addEventListener('appinstalled', () => { installBtn.hidden = true; toast('Installed. Open it from your home screen.'); });
+
+  /* ---------- note sync: Firebase is only loaded after the user turns sync on ---------- */
+  const syncFlag = { get() { try { return localStorage.getItem('mishkat-sync') === '1'; } catch (e) { return false; } },
+    set(on) { try { if (on) localStorage.setItem('mishkat-sync', '1'); else localStorage.removeItem('mishkat-sync'); } catch (e) {} } };
+  const syncOK = !singleFile && /^https?:$/.test(location.protocol) && window.isSecureContext;
+  let syncLoading = false;
+  const loadScript = (src) => new Promise((res, rej) => { const e = document.createElement('script'); e.src = src; e.onload = res; e.onerror = rej; document.head.appendChild(e); });
+  async function loadSync() {
+    if (syncLoading) return; syncLoading = true;
+    try { await loadScript('firebase-config.js'); await loadScript('sync.js'); }
+    catch (e) { syncLoading = false; $('sync-box').textContent = 'Sync could not load. Try again when you are online.'; }
+  }
+  function syncUI() {
+    const on = $('sync-on'), off = $('sync-off'), box = $('sync-box');
+    if (!syncOK) { on.hidden = off.hidden = true; return; }
+    const set = syncFlag.get();
+    on.hidden = set; off.hidden = !set;
+    if (!set) { box.textContent = ''; box.appendChild(el('p', '', 'Keep your notes the same on every device with your Google account. Google’s sign-in code is only loaded after you turn this on.')); }
+  }
+  $('sync-on').addEventListener('click', () => {
+    syncFlag.set(true); syncUI();
+    $('sync-box').textContent = ''; $('sync-box').appendChild(el('p', '', 'Connecting…'));
+    loadSync();
+  });
+  $('sync-off').addEventListener('click', async () => {
+    flushAll(); syncFlag.set(false);
+    try { if (window.firebase && firebase.auth) await firebase.auth().signOut(); } catch (e) {}
+    if (window.IkmalNotes) window.IkmalNotes.onLocalSave = null;
+    toast('Note sync turned off. Reloading…');
+    setTimeout(() => location.reload(), 500);
+  });
 
   /* ---------- backup ---------- */
   $('notes-export').addEventListener('click', () => {
@@ -1388,6 +1429,7 @@
     route();
     onScroll();
     installBridge(); // only now: sync.js waits for window.IkmalNotes, and it must see loaded data and notes
+    syncUI(); if (syncOK && syncFlag.get()) loadSync();
   }
   function intro() {
     drawPattern(true);
