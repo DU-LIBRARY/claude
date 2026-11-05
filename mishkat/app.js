@@ -588,9 +588,14 @@
       if (grouped) {
         let fresh = !ol;
         if (s._book.id !== lastBook) { lastBook = s._book.id; lastFasl = null; lastBab = null; frag.appendChild(groupHeading('book', s._book.ar, s._book.en)); fresh = true; }
-        const bk = s.bab ? s.bab.ar : null;
+        const bk = s.bab ? s.bab.n : null;
         const fk = s.fasl ? faslKey(s) : null;
-        if (bk && bk !== lastBab) { lastBab = bk; lastFasl = null; group(groupHeading('bab', s.bab.ar, s.bab.en || '')); fresh = false; }
+        if (bk && bk !== lastBab) {
+          lastBab = bk; lastFasl = null; fresh = false;
+          // An untitled bāb (printed as "باب" alone) is shown with its number.
+          const untitled = s.bab.ar === 'باب';
+          group(groupHeading('bab', untitled ? 'باب ' + arNum(s.bab.n) : s.bab.ar, s.bab.en || (untitled ? 'Bāb ' + s.bab.n + ' (untitled in the print)' : '')));
+        }
         if (fk && fk !== lastFasl) { lastFasl = fk; group(groupHeading('fasl', s.fasl.ar, s.fasl.en)); fresh = false; }
         if (fresh) group(null, s._book.en + ': opening');
       }

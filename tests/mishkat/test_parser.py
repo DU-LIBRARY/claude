@@ -90,7 +90,7 @@ class RoundTripBase:
         for el in wrap.find_all(['h2', 'section'], recursive=False):
             if el.name == 'h2':
                 t = norm(el.get_text())
-                m = re.match(r'^\((\S+)\) (باب .+)$', t)
+                m = re.match(r'^\((\S+)\) (باب(?: .+)?)$', t)
                 if m:
                     bab, fasl = {'n': int(m[1].translate(AR_DIGITS)), 'ar': m[2], 'en': None}, None
                 else:
@@ -549,6 +549,21 @@ class ToolRuns(unittest.TestCase):
         bad = second.replace('<h2 class="bab" dir="rtl">(١) باب النظر إلى المخطوبة وبيان العورات</h2>', '', 1)
         self.assertNotEqual(bad, second)
         self.assert_rejected(bad, 'b1: bāb opening without a matching')
+
+    def test_untitled_bab(self):
+        """Mishkāt prints some bābs without a title: "(٦) باب" alone."""
+        page = (HERE / 'fixtures' / 'nikah-artifact-latest.html').read_text(encoding='utf-8')
+        _, secs, *_ = sync.parse_page(page)
+        b = {s['srcId']: s for s in secs}
+        bab = {'n': 6, 'ar': 'باب', 'en': None}
+        self.assertEqual(b['b6']['bab'], bab)
+        self.assertEqual(b['b6']['label'], 'Opening of Bāb 6')
+        self.assertEqual(b['h3198']['bab'], bab)
+        self.assertEqual(b['h3202']['bab']['n'], 7)
+        # "باب" must still be followed by a space and a title, or stand alone
+        bad = page.replace('(١) باب النظر', '(١) بابالنظر', 1)
+        self.assertNotEqual(bad, page)
+        self.assert_rejected(bad, 'unrecognised heading')
 
     def test_unrecognised_heading(self):
         bad = HTML.replace('<h2 class="bab" dir="rtl">الفصل الثاني</h2>', '<h2 class="bab" dir="rtl">عنوان آخر</h2>', 1)

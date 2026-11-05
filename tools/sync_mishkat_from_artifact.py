@@ -61,8 +61,9 @@ FASL = {1: ('الفصل الأول', 'al-Faṣl al-Awwal'),
         5: ('الفصل الخامس', 'al-Faṣl al-Khāmis')}
 FASL_BY_AR = {ar: n for n, (ar, _) in FASL.items()}
 FASL_BY_EN = {en: n for n, (_, en) in FASL.items()}
-# A bāb heading as the page prints it: "(١) باب النظر إلى المخطوبة وبيان العورات"
-BAB_HEAD = re.compile(r'^\((?P<n>[0-9٠-٩]+)\) (?P<ar>باب .+)$')
+# A bāb heading as the page prints it: "(١) باب النظر إلى المخطوبة وبيان العورات".
+# Some bābs have no title in Mishkāt and print as "(٦) باب" alone.
+BAB_HEAD = re.compile(r'^\((?P<n>[0-9٠-٩]+)\) (?P<ar>باب(?: .+)?)$')
 BAB_LABEL = re.compile(r'^Opening of Bāb (?P<n>\d+)$')
 DIGITS = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
 
