@@ -369,6 +369,49 @@ class ToolRuns(unittest.TestCase):
         self.assertIn('14 added', r.stdout)
         self.assertEqual(snapshot(self.root), before)
 
+    def webarchive(self, html_text, version='1793999999-abcd'):
+        """A Safari .webarchive like the iPhone's "Save to Files": claude.ai page + the artifact frame."""
+        import plistlib
+        frame = {'WebResourceURL': f'https://c1f8bf44-7350-48e6-a68c-60d26754bf9a.frame.claudeusercontent.com/_f/{version}/',
+                 'WebResourceMIMEType': 'text/html', 'WebResourceTextEncodingName': 'UTF-8',
+                 'WebResourceData': html_text.encode('utf-8')}
+        arc = {'WebMainResource': {'WebResourceURL': 'https://claude.ai/artifact/x', 'WebResourceMIMEType': 'text/html',
+                                   'WebResourceData': b'<!doctype html><title>claude.ai</title>'},
+               'WebSubframeArchives': [{'WebMainResource': frame}]}
+        p = self.tmp / 'page.webarchive'
+        p.write_bytes(plistlib.dumps(arc, fmt=plistlib.FMT_BINARY))
+        return p
+
+    def test_webarchive_with_safari_phone_links(self):
+        cite = 'Mirqāt 6/242 · PDF p. 243'
+        self.assertIn(cite, HTML)
+        safari = HTML.replace(cite, 'Mirqāt 6/242 · PDF p. <a href="tel:243">243</a>', 1)
+        r = self.run_tool(html=self.webarchive(safari))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('from a .webarchive (version 1793999999-abcd)', r.stdout)
+        self.assertIn('14 sections: 14 added, 0 removed, 0 changed', r.stdout)
+        self.assertEqual(self.meta()['source']['version'], '1793999999-abcd')
+        r2 = self.run_tool('--version', '1793999999-abcd')            # the plain page gives the same data
+        self.assertEqual(r2.returncode, 0, r2.stderr)
+        self.assertIn('Nothing to update.', r2.stdout)
+
+    def test_webarchive_other_links_still_rejected(self):
+        cite = 'Mirqāt 6/242 · PDF p. 243'
+        for link in ('<a href="https://example.com/">243</a>', '<a href="tel:243"><b>243</b></a>'):
+            bad = HTML.replace(cite, 'Mirqāt 6/242 · PDF p. ' + link, 1)
+            before = snapshot(self.root)
+            r = self.run_tool(html=self.webarchive(bad))
+            self.assertNotEqual(r.returncode, 0, r.stdout)
+            self.assertIn('unexpected <a', r.stderr)
+            self.assertEqual(snapshot(self.root), before)
+
+    def test_not_a_webarchive(self):
+        p = self.tmp / 'junk.webarchive'
+        p.write_bytes(b'bplist00garbage')
+        r = self.run_tool(html=p)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn('Nothing was written.', r.stderr)
+
     def test_second_book_is_added_not_overwritten(self):
         self.assertEqual(self.run_tool().returncode, 0)
         # another book's page holding only its opening section

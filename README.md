@@ -127,6 +127,12 @@ in this repository. Claude then:
 3. shows you the summary (sections added, removed and changed, and what changed in each),
 4. commits and pushes to the branch.
 
+If Claude can't read the artifact (for example, it was shared from another organization and the Artifact
+tool is off), save it yourself and attach the file. On an iPhone or iPad, open the artifact link in Safari,
+then **Share → Options → Web Archive → Save to Files**; on a Mac, **File → Save As → Web Archive**. The script
+reads the `.webarchive` directly, takes the artifact's own frame and its version id from it, and undoes
+Safari's phone-number links (page ranges like "2256–2257" turned into `tel:` links).
+
 The script treats the page as data and never runs its scripts. It checks the shape (each hadeeth has its matn
 and all three commentaries, every footnote mark has its note, the numbers have no gaps) and stops without
 writing anything if the page is malformed. When content changed it writes `mishkat/data/`, bumps `VERSION`

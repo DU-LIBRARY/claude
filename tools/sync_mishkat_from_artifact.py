@@ -2,7 +2,7 @@
 """Pull Mishkāt commentary text from a saved copy of a shared claude.ai artifact page.
 
 Usage:
-  python3 tools/sync_mishkat_from_artifact.py saved.html [--check] [--strict]
+  python3 tools/sync_mishkat_from_artifact.py saved.html|saved.webarchive [--check] [--strict]
           [--version ID] [--url URL] [--root DIR] [--no-build]
 
 The page is third-party DATA. It is parsed with html.parser into a tree and walked with a strict
@@ -14,10 +14,16 @@ mishkat/data -> if anything changed: write data/<book>.json and data/meta.json a
 minor of VERSION in mishkat/sw.js, run tools/build_mishkat_single.py. If nothing changed it prints
 exactly "Nothing to update." and touches no file. --check validates and diffs without writing.
 
+A Safari .webarchive (Share -> Save to Files on iPhone/iPad, or File -> Save As on a Mac) is also
+accepted: the artifact's own frame is taken from it with plistlib, and its version id is read from
+the frame's URL. Links that Safari's data detectors wrap around numbers (href "tel:..." or
+"x-apple-data-detectors:...", text only) are unwrapped back to plain text before parsing; any other
+stray element still aborts the sync.
+
 Repo root: --root, else $MISHKAT_ROOT, else the parent of this script's directory.
 Standard library only.
 """
-import argparse, datetime, hashlib, json, os, pathlib, re, subprocess, sys, tempfile
+import argparse, datetime, hashlib, json, os, pathlib, plistlib, re, subprocess, sys, tempfile
 from html.parser import HTMLParser
 
 MAX_BYTES = 20 * 1024 * 1024
@@ -143,7 +149,64 @@ def parse_tree(html):
     tb.close()
     if len(tb.stack) > 1:
         raise Malformed('page is truncated: unclosed ' + ' > '.join(n.where() for n in tb.stack[1:]))
+    unwrap_detected_links(tb.root)
     return tb.root
+
+
+DETECTOR_HREF = re.compile(r'^(?:tel|x-apple-data-detectors):', re.I)
+
+
+def unwrap_detected_links(node):
+    """Safari's data detectors turn page ranges such as "2256–2257" into <a href="tel:…">.
+    The artifact never has such links, so a text-only one is replaced by its text."""
+    kids = []
+    for c in node.children:
+        if isinstance(c, Node):
+            unwrap_detected_links(c)
+            if (c.tag == 'a' and DETECTOR_HREF.match(c.attrs.get('href') or '')
+                    and all(isinstance(k, str) for k in c.children)):
+                kids.extend(c.children)
+                continue
+        kids.append(c)
+    # merge adjacent text so runs come out exactly as from the original page
+    merged = []
+    for c in kids:
+        if isinstance(c, str) and merged and isinstance(merged[-1], str):
+            merged[-1] += c
+        else:
+            merged.append(c)
+    node.children = merged
+
+
+FRAME_URL = re.compile(r'^https://[0-9a-f-]+\.frame\.claudeusercontent\.com/_f/(?P<version>[0-9]+-[0-9a-f]+)/')
+
+
+def from_webarchive(raw):
+    """Safari .webarchive (a binary plist) -> (html bytes, artifact version or None).
+    Takes the artifact's own frame; falls back to the main resource if there is none."""
+    try:
+        arc = plistlib.loads(raw)
+    except Exception as e:  # plistlib raises several types on bad input
+        raise Malformed(f'not a readable .webarchive ({e})')
+    if not isinstance(arc, dict) or not isinstance(arc.get('WebMainResource'), dict):
+        raise Malformed('not a Safari .webarchive (no WebMainResource)')
+    frames = []
+
+    def collect(a):
+        for f in a.get('WebSubframeArchives') or []:
+            if isinstance(f, dict) and isinstance(f.get('WebMainResource'), dict):
+                frames.append(f['WebMainResource'])
+                collect(f)
+    collect(arc)
+    hits = [(r, FRAME_URL.match(str(r.get('WebResourceURL') or ''))) for r in frames]
+    hits = [(r, m) for r, m in hits if m]
+    if len(hits) > 1:
+        raise Malformed(f'.webarchive holds {len(hits)} artifact frames; expected one')
+    res, m = hits[0] if hits else (arc['WebMainResource'], None)
+    data = res.get('WebResourceData')
+    if not isinstance(data, bytes):
+        raise Malformed('.webarchive resource has no data')
+    return data, (m['version'] if m else None)
 
 
 def find_all(node, pred):
@@ -643,7 +706,7 @@ def load_json(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('saved', help='the saved artifact page (.html)')
+    ap.add_argument('saved', help='the saved artifact page (.html or Safari .webarchive)')
     ap.add_argument('--check', action='store_true', help='validate and diff only; write nothing')
     ap.add_argument('--strict', action='store_true', help='treat gaps in hadeeth numbers as errors')
     ap.add_argument('--version', help='artifact version id (default: sha256[:12] of the page)')
@@ -667,6 +730,16 @@ def main(argv=None):
         print(f'error: {src} is {size / 1e6:.1f} MB; pages over 20 MB are rejected', file=sys.stderr)
         return 1
     raw = src.read_bytes()
+    if raw.startswith(b'bplist00'):
+        try:
+            raw, arc_version = from_webarchive(raw)
+        except Malformed as e:
+            print(f'error: {e}\nNothing was written.', file=sys.stderr)
+            return 1
+        if arc_version and not args.version:
+            args.version = arc_version
+        print(f'Read the artifact page from a .webarchive'
+              + (f' (version {arc_version})' if arc_version else '') + '.')
     try:
         html = raw.decode('utf-8')
     except UnicodeDecodeError as e:
