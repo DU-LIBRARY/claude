@@ -14,13 +14,13 @@ service cloud.firestore {
 
     // ---------------- Darul Uloom Fantasy League (fantasy/) ----------------
     // Private league: only emails on the allowlist (fantasyAccess/allowlist.emails, lower case)
-    // can read or play. The admin email below can do everything. Keep it in step with
-    // adminEmail in fantasy/config.js.
+    // can read or play. The admin emails below can do everything. Keep them in step with
+    // adminEmails in fantasy/config.js.
     function fflSignedIn() {
       return request.auth != null && request.auth.token.email != null && request.auth.token.email_verified == true;
     }
     function fflAdmin() {
-      return fflSignedIn() && request.auth.token.email.lower() == 'zsteal94@gmail.com';
+      return fflSignedIn() && request.auth.token.email.lower() in ['zsteal94@gmail.com', 'zabowath37@gmail.com'];
     }
     function fflMember() {
       return fflAdmin() || (fflSignedIn() &&

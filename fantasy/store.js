@@ -57,7 +57,7 @@
     const api = {
       demo: false,
       get user() { return user; },
-      isAdmin: () => !!user && (user.email || '').toLowerCase() === CFG.adminEmail.toLowerCase(),
+      isAdmin: () => !!user && CFG.adminEmails.map((e) => e.toLowerCase()).includes((user.email || '').toLowerCase()),
       async init() {
         const cfg = window.DUF_FIREBASE;
         if (!cfg || !cfg.apiKey) throw new Error('Firebase is not set up (fantasy/firebase-config.js).');

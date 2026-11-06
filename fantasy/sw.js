@@ -1,6 +1,6 @@
 /* Offline cache for the Darul Uloom Fantasy League.
    Bump VERSION whenever any file below changes so phones pick up the update. */
-const VERSION = 'duf-v1.0.0';
+const VERSION = 'duf-v1.0.1';
 const ASSETS = [
   './', 'index.html', 'styles.css', 'config.js', 'firebase-config.js', 'core.js', 'demo.js', 'store.js', 'app.js',
   'players.json', 'manifest.webmanifest',

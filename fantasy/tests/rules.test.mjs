@@ -51,6 +51,7 @@ await t('member cannot move a deadline or unlock', assertFails(setDoc(doc(ali, '
 await t('admin writes sheets', assertSucceeds(setDoc(doc(admin, 'fantasySheets/w1-FAI-NAS'), { absent: [] })));
 await t('admin writes prices', assertSucceeds(setDoc(doc(admin, 'fantasySettings/prices'), { updates: [] })));
 await t('admin sets deadlines', assertSucceeds(setDoc(doc(admin, 'fantasyGw/4'), { deadline: Timestamp.fromMillis(Date.now() + H), locked: false })));
+await t('second admin writes sheets', assertSucceeds(setDoc(doc(user('z', 'zabowath37@gmail.com'), 'fantasySheets/w1-FAI-NAS'), { absent: ['x'] })));
 await t('admin fixes a team after the deadline', assertSucceeds(setDoc(doc(admin, 'fantasyGw/1/entries/bob'), entry('bob'))));
 await t('member creates own manager doc', assertSucceeds(setDoc(doc(ali, 'fantasyManagers/ali'), { uid: 'ali', email: 'ali@gmail.com', name: 'Ali', teamName: 'Ali FC', player: null, joined: 1 })));
 await t('member cannot create someone else\'s manager doc', assertFails(setDoc(doc(ali, 'fantasyManagers/bob'), { uid: 'bob', email: 'ali@gmail.com', name: 'x', teamName: 'x', player: null, joined: 1 })));

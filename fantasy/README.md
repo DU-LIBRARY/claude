@@ -15,12 +15,13 @@ and `du-library.github.io` are already set up. Two steps are left:
 1. **Publish the rules.** Firebase console → **Firestore Database → Rules**. Replace everything with
    the contents of [`/firestore.rules`](../firestore.rules), then **Publish**. The notes rules for the
    Al-Ikmāl app are included unchanged.
-2. **Sign in once as the admin.** Open the app and sign in with `zsteal94@gmail.com`. The first time,
+2. **Sign in once as an admin.** Open the app and sign in with `zsteal94@gmail.com` or `zabowath37@gmail.com`
+   (both are admins; `zabowath37@gmail.com` is also the Firebase console account, so publish the rules from it). The first time,
    the app saves the starting list of players' emails (from `config.js`). Then open
    **Admin → Gameweeks & deadlines** and open Week 1 with its deadline.
 
-The admin email is written in two places: `adminEmail` in `config.js`, and `fflAdmin()` in
-`firestore.rules`. If you ever change it, change both and publish the rules again.
+The admin emails are written in two places: `adminEmails` in `config.js`, and `fflAdmin()` in
+`firestore.rules`. If you ever change them, change both and publish the rules again.
 
 ## Adding a manager's email
 

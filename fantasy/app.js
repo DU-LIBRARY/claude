@@ -249,7 +249,7 @@
       <button class="btn" data-act="signout">Use a different account</button></div></div>`;
   }
   function gateOnboard(main) {
-    const opts = Object.values(S.L.players).filter((p) => p.team).sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<option>${esc(p.name)}</option>`).join('');
+    const opts = Object.values(S.L.players).sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<option>${esc(p.name)}</option>`).join('');
     main.innerHTML = `<div class="gate"><div class="card"><h1>Welcome</h1><p>Choose a name for your fantasy team. Everyone in the league will see it.</p>
       <label class="f">Team name<input type="text" id="tn" maxlength="30" placeholder="e.g. Barakah Boys"></label>
       <p></p><label class="f">Do you play in the league? (optional)<select id="tp"><option value="">No / not saying</option>${opts}</select></label>
@@ -627,7 +627,7 @@
     <details class="adm" ${allow ? 'open' : ''}><summary>Who can play (allowlist)</summary><div>
       ${allow ? `<table><tbody>${allow.map((e) => `<tr><td>${esc(e)}</td><td class="n"><button class="btn small" data-act="alrm" data-e="${esc(e)}">Remove</button></td></tr>`).join('') || '<tr><td class="muted">Nobody yet.</td></tr>'}</tbody></table>
         <div class="filters" style="margin-top:8px"><input type="email" id="aladd" placeholder="name@gmail.com"><button class="btn small primary" data-act="aladd">Add</button></div>
-        <p class="small muted">You (${esc(c.adminEmail)}) are always allowed.</p>` : '<button class="btn small" data-act="alload">Show the list</button>'}
+        <p class="small muted">Admins (${esc(c.adminEmails.join(', '))}) are always allowed.</p>` : '<button class="btn small" data-act="alload">Show the list</button>'}
     </div></details>
     <details class="adm"><summary>Managers &amp; data fixes</summary><div>
       <table><tbody>${D.managers.map((m) => `<tr><td><input type="text" data-tname="${esc(m.uid)}" value="${esc(m.teamName)}" maxlength="30"><br><span class="small muted">${esc(m.email)}${m.player ? ' · plays as ' + esc(m.player) : ''}</span></td><td class="n"><button class="btn small" data-act="tname" data-uid="${esc(m.uid)}">Rename</button></td></tr>`).join('')}</tbody></table>

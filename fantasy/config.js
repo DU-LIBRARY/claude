@@ -3,14 +3,14 @@
    The budget can also be changed from the Admin screen (that value wins over `budget` below). */
 (function (root) {
   const CONFIG = {
-    // Who runs the league. Must match the email in firestore.rules.
-    adminEmail: 'zsteal94@gmail.com',
+    // Who runs the league. Must match the emails in fflAdmin() in firestore.rules.
+    adminEmails: ['zsteal94@gmail.com', 'zabowath37@gmail.com'],
     // Starting allowlist. Saved to the database the first time the admin signs in;
     // after that, add and remove people on the Admin screen (this list is then ignored).
     initialAllowlist: [
       'ai8power12345@gmail.com',   // Abdullah Patel
       'huzayfahqureshi@gmail.com',
-      'zabowath37@gmail.com',
+      'zabowath37@gmail.com',      // Ziyaad (also the Firebase console account)
       'jamz7bholat@gmail.com',
       'adamsayani123@gmail.com',
       'bilalanees54@gmail.com',
