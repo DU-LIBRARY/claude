@@ -1,13 +1,91 @@
 rules_version = '2';
-// Each signed-in person can read and write only their own notes.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------------- Al-Ikmāl / Mishkāt notes ----------------
+    // Each signed-in person can read and write only their own notes.
     match /users/{uid}/notes/{noteId} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['text', 'updated', 'entry', 'name'])
         && request.resource.data.text is string && request.resource.data.text.size() < 50000
         && request.resource.data.updated is number;
+    }
+
+    // ---------------- Darul Uloom Fantasy League (fantasy/) ----------------
+    // Private league: only emails on the allowlist (fantasyAccess/allowlist.emails, lower case)
+    // can read or play. The admin email below can do everything. Keep it in step with
+    // adminEmail in fantasy/config.js.
+    function fflSignedIn() {
+      return request.auth != null && request.auth.token.email != null && request.auth.token.email_verified == true;
+    }
+    function fflAdmin() {
+      return fflSignedIn() && request.auth.token.email.lower() == 'zsteal94@gmail.com';
+    }
+    function fflMember() {
+      return fflAdmin() || (fflSignedIn() &&
+        request.auth.token.email.lower() in get(/databases/$(database)/documents/fantasyAccess/allowlist).data.emails);
+    }
+    function fflGw(gw) {
+      return get(/databases/$(database)/documents/fantasyGw/$(gw)).data;
+    }
+    // The deadline is checked here, on the server, with the server's clock.
+    function fflOpen(gw) {
+      let g = fflGw(gw);
+      return g.locked != true && request.time < g.deadline;
+    }
+    function fflPassed(gw) {
+      let g = fflGw(gw);
+      return request.time >= g.deadline || g.locked == true;
+    }
+    function fflValidEntry(uid) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['uid', 'squad', 'sub', 'captain', 'vice', 'chip', 'savedAt'])
+        && d.uid == uid
+        && d.squad is list && d.squad.size() == 9
+        && d.sub is string && d.captain is string && d.vice is string
+        && (d.chip == null || d.chip in ['wc', 'tc', 'bb', 'fh'])
+        && d.savedAt == request.time;
+    }
+
+    // Who may play. Only the admin reads or edits the list.
+    match /fantasyAccess/{doc} {
+      allow read, write: if fflAdmin();
+    }
+    // League settings (budget history, second chip set, …), prices, match sheets: admin writes.
+    match /fantasySettings/{doc} {
+      allow read: if fflMember();
+      allow write: if fflAdmin();
+    }
+    match /fantasySheets/{key} {
+      allow read: if fflMember();
+      allow write: if fflAdmin();
+    }
+    // Managers: team name, display name, and (optionally) which league player they are.
+    match /fantasyManagers/{uid} {
+      allow read: if fflMember();
+      allow create, update: if fflAdmin() || (fflMember() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'teamName', 'player', 'joined'])
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.teamName is string
+        && request.resource.data.teamName.size() > 0 && request.resource.data.teamName.size() <= 30);
+      allow delete: if fflAdmin();
+    }
+    // Gameweeks: deadline + lock, set by the admin.
+    match /fantasyGw/{gw} {
+      allow read: if fflMember();
+      allow write: if fflAdmin();
+      // One team per manager per gameweek.
+      //  - you can always read your own; everyone's become readable once the deadline passes
+      //  - you can write only your own, and only before the deadline (server time)
+      match /entries/{uid} {
+        allow get: if fflMember() && (request.auth.uid == uid || fflPassed(gw));
+        allow list: if fflMember() && fflPassed(gw);
+        allow create, update: if fflAdmin()
+          || (fflMember() && request.auth.uid == uid && fflOpen(gw) && fflValidEntry(uid));
+        allow delete: if fflAdmin();
+      }
     }
   }
 }

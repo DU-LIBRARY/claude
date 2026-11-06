@@ -1,0 +1,68 @@
+{
+  "name": "Darul Uloom Winter League",
+  "title_lines": [
+    "Darul Uloom",
+    "Winter League"
+  ],
+  "arabic_name": "دار العلوم",
+  "season": "2026",
+  "points": {
+    "win": 3,
+    "draw": 1,
+    "loss": 0
+  },
+  "tiebreak": [
+    "points",
+    "gd",
+    "gf",
+    "name"
+  ],
+  "artifact": {
+    "slug": "f34e41f1-25cf-4da0-853c-23c3639069be",
+    "url": "https://claude.ai/artifact/X3aSihZoh87zLQ57WvfycH",
+    "datasets": {
+      "matches": "datasets/matches",
+      "goals": "datasets/goals",
+      "squads": "datasets/squads"
+    }
+  },
+  "schedule": {
+    "format": "Each team plays every other team once a week: 3 rounds of 2 games played at the same time",
+    "pitches": ["Pitch 1", "Pitch 2"],
+    "kickoffs": [],
+    "venue": null
+  },
+  "teams": [
+    { "name": "An-Nāṣirūn", "arabic": "الناصرون", "crest_text": "الناصرون", "crest": "shield", "short": "NAS" },
+    { "name": "Al-Fāʾizūn", "arabic": "الفائزون", "crest_text": "الفائزون", "crest": "roundel", "short": "FAI" },
+    { "name": "Al-Mufliḥūn", "arabic": "المفلحون", "crest_text": "المفلحون", "crest": "octagon", "short": "MUF" },
+    { "name": "As-Sābiqūn", "arabic": "السابقون", "crest_text": "السابقون", "crest": "arch", "short": "SAB", "manager": "Ismail Kassam" }
+  ],
+  "brand": {
+    "cream": "#f2ebdd",
+    "paper": "#faf6ee",
+    "ink": "#171412",
+    "ink2": "#5d5650",
+    "crimson": "#9b1b30",
+    "crimsonLight": "#d75b6e",
+    "up": "#2f8f5b",
+    "down": "#c0392b",
+    "logo": "assets/logo.jpg",
+    "watermark_opacity": 0.07,
+    "bismillah": "بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
+  },
+  "launch": {
+    "opening_hadith": {
+      "arabic": "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى",
+      "english": "Actions are only by their intentions, and every person will have only what they intended.",
+      "narrator": "ʿUmar ibn al-Khaṭṭāb (may Allah be pleased with him)",
+      "source": "Ṣaḥīḥ al-Bukhārī 1"
+    },
+    "closing_hadith": {
+      "arabic": "المؤمن القوي خير وأحب إلى الله من المؤمن الضعيف، وفي كل خير. احرص على ما ينفعك، واستعن بالله ولا تعجز، وإن أصابك شيء فلا تقل: لو أني فعلت كان كذا وكذا، ولكن قل: قدر الله وما شاء فعل، فإن لو تفتح عمل الشيطان",
+      "english": "The strong believer is better and more beloved to Allah than the weak believer, and there is good in each. Be eager for what benefits you, seek help from Allah and do not give up. If something befalls you, do not say, ‘If only I had done such-and-such, it would have been such-and-such’; rather say, ‘Allah has decreed, and whatever He wills He does,’ for ‘if only’ opens the door to the work of Shayṭān.",
+      "narrator": "Abū Hurayrah (may Allah be pleased with him)",
+      "source": "Ṣaḥīḥ Muslim 2664"
+    }
+  }
+}
