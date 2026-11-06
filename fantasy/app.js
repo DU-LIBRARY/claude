@@ -183,7 +183,7 @@
     const w = $('#who');
     if (!S.user) { w.innerHTML = ''; return; }
     const m = myManager();
-    w.innerHTML = `<b>${esc(m.teamName || S.user.displayName || S.user.email)}</b><span class="muted">${esc(S.user.email || '')}</span> · <button data-act="signout">Sign out</button>`;
+    w.innerHTML = (m.teamName ? `<b><button data-act="profile" style="color:inherit;text-decoration:none;font-size:16px;font-weight:700" title="Edit team name and player">${esc(m.teamName)} ✎</button></b>` : `<b>${esc(S.user.displayName || S.user.email)}</b>`) + `<span class="muted">${esc(S.user.email || '')}</span> · <button data-act="signout">Sign out</button>`;
   }
   function renderFoot() {
     const h = (S.L && S.L.config.launch && S.L.config.launch.opening_hadith) || null;
@@ -235,6 +235,8 @@
   }
   function after() { if (S.tab === 'league') bindChart(); }
 
+  const playerOptions = (sel) => '<option value="">Not a league player / not saying</option>' + Object.values(S.L.players).sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<option ${p.name === sel ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+
   // ---------- gates ----------
   function gateSignIn(main) {
     main.innerHTML = `<div class="gate"><div class="card"><svg class="" viewBox="0 0 100 118" width="72" height="85" aria-hidden="true"><path d="M50 3 L94 15 V58 C94 86 74 104 50 115 C26 104 6 86 6 58 V15 Z" fill="#9b1b30" stroke="#171412" stroke-width="5"/><text x="50" y="74" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="46" fill="#f2ebdd">DU</text></svg><h1>Fantasy League</h1>
@@ -252,7 +254,7 @@
     const opts = Object.values(S.L.players).sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<option>${esc(p.name)}</option>`).join('');
     main.innerHTML = `<div class="gate"><div class="card"><h1>Welcome</h1><p>Choose a name for your fantasy team. Everyone in the league will see it.</p>
       <label class="f">Team name<input type="text" id="tn" maxlength="30" placeholder="e.g. Barakah Boys"></label>
-      <p></p><label class="f">Do you play in the league? (optional)<select id="tp"><option value="">No / not saying</option>${opts}</select></label>
+      <p></p><label class="f">Do you play in the league? (optional)<select id="tp">${playerOptions(null)}</select></label>
       <p class="small muted">If you pick yourself, your player card gets a “That's you!” tag.</p>
       <button class="btn primary" data-act="onboard">Start</button></div></div>`;
   }
@@ -630,7 +632,7 @@
         <p class="small muted">Admins (${esc(c.adminEmails.join(', '))}) are always allowed.</p>` : '<button class="btn small" data-act="alload">Show the list</button>'}
     </div></details>
     <details class="adm"><summary>Managers &amp; data fixes</summary><div>
-      <table><tbody>${D.managers.map((m) => `<tr><td><input type="text" data-tname="${esc(m.uid)}" value="${esc(m.teamName)}" maxlength="30"><br><span class="small muted">${esc(m.email)}${m.player ? ' · plays as ' + esc(m.player) : ''}</span></td><td class="n"><button class="btn small" data-act="tname" data-uid="${esc(m.uid)}">Rename</button></td></tr>`).join('')}</tbody></table>
+      <table><tbody>${D.managers.map((m) => `<tr><td><input type="text" data-tname="${esc(m.uid)}" value="${esc(m.teamName)}" maxlength="30"><br><select data-tplayer="${esc(m.uid)}" aria-label="Plays as" style="margin-top:4px;max-width:220px">${playerOptions(m.player)}</select><br><span class="small muted">${esc(m.email)}${m.player ? ' · plays as ' + esc(m.player) : ''}</span></td><td class="n"><button class="btn small" data-act="tname" data-uid="${esc(m.uid)}">Save</button></td></tr>`).join('')}</tbody></table>
       <h3 style="margin-top:12px">Edit a team</h3><p class="small muted">For fixing mistakes. You can save any manager's team for any week, even after the deadline.</p>
       <div class="filters"><select id="fxuid">${D.managers.map((m) => `<option value="${esc(m.uid)}">${esc(m.teamName)}</option>`).join('')}</select><select id="fxgw">${D.gws.map((g) => `<option>${g}</option>`).join('')}</select><button class="btn small" data-act="fxload">Load</button></div>
       <textarea id="fxjson" rows="6" placeholder='{"squad":[…9 names],"sub":"…","captain":"…","vice":"…","chip":null}'></textarea>
@@ -708,6 +710,19 @@
       const tn = $('#tn').value.trim(); if (!tn) { toast('Choose a team name'); return; }
       const doc = { uid: meUid(), email: (S.user.email || '').toLowerCase(), name: S.user.displayName || '', teamName: tn.slice(0, 30), player: $('#tp').value || null, joined: Date.now() };
       await guard(() => S.store.saveManager(doc), `Welcome, ${tn}!`);
+    },
+    profile() {
+      const m = myManager();
+      openSheet(`<h2>Your team</h2><label class="f">Team name<input type="text" id="pf-tn" maxlength="30" value="${esc(m.teamName || '')}"></label><p></p>
+        <label class="f">Which player are you?<select id="pf-pl">${playerOptions(m.player)}</select></label>
+        <p class="small muted">Your own player card gets a “That's you!” tag.</p>
+        <div class="acts"><button class="btn primary" data-act="profileSave">Save</button><button class="btn" data-act="close">Cancel</button></div>`);
+    },
+    async profileSave() {
+      const tn = $('#pf-tn').value.trim(); if (!tn) { toast('Choose a team name'); return; }
+      const m = myManager();
+      const doc = { uid: meUid(), email: (S.user.email || '').toLowerCase(), name: m.name || S.user.displayName || '', teamName: tn.slice(0, 30), player: $('#pf-pl').value || null, joined: m.joined || Date.now() };
+      closeSheet(); await guard(() => S.store.saveManager(doc), 'Saved');
     },
     notify() { Notification.requestPermission().then(() => render()); },
     // pick team
@@ -793,7 +808,7 @@
       await guard(() => S.store.saveAllowlist(list), `${e} can now play`); S.admin.allow = list; render();
     },
     async alrm(el) { const list = (S.admin.allow || []).filter((x) => x !== el.dataset.e); await guard(() => S.store.saveAllowlist(list), 'Removed'); S.admin.allow = list; render(); },
-    async tname(el) { const uid = el.dataset.uid, v = $(`[data-tname="${CSS.escape(uid)}"]`).value.trim(); if (!v) return; await guard(() => S.store.saveManager({ ...S.data.managers[uid], teamName: v.slice(0, 30) }), 'Renamed'); },
+    async tname(el) { const uid = el.dataset.uid, v = $(`[data-tname="${CSS.escape(uid)}"]`).value.trim(), pl = $(`[data-tplayer="${CSS.escape(uid)}"]`).value || null; if (!v) return; await guard(() => S.store.saveManager({ ...S.data.managers[uid], teamName: v.slice(0, 30), player: pl }), 'Saved'); },
     fxload() { const uid = $('#fxuid').value, g = Number($('#fxgw').value); const s = (D.state[uid] || {})[g]; const e = (S.data.entries[g] || {})[uid] || (s && s.entry); $('#fxjson').value = e ? JSON.stringify({ squad: e.squad, sub: e.sub, captain: e.captain, vice: e.vice, chip: e.chip || null }, null, 1) : ''; },
     async fxsave() {
       const uid = $('#fxuid').value, g = Number($('#fxgw').value);
