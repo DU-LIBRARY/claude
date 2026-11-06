@@ -12,10 +12,10 @@ service cloud.firestore {
         && request.resource.data.updated is number;
     }
 
-    // ---------------- Darul Uloom Fantasy League (fantasy/) ----------------
+    // ---------------- Darul Uloom Fantasy League (du-library/fantasy- repo) ----------------
     // Private league: only emails on the allowlist (fantasyAccess/allowlist.emails, lower case)
     // can read or play. The admin emails below can do everything. Keep them in step with
-    // adminEmails in fantasy/config.js.
+    // adminEmails in config.js of the du-library/fantasy- repo (the fantasy app).
     function fflSignedIn() {
       return request.auth != null && request.auth.token.email != null && request.auth.token.email_verified == true;
     }

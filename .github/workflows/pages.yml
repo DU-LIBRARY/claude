@@ -30,7 +30,6 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html .nojekyll app siyar mishkat fantasy dist _site/
-          rm -rf _site/fantasy/tests _site/fantasy/tools
           rm -f _site/mishkat/DATA.md
       - uses: actions/upload-pages-artifact@v3
         with:
