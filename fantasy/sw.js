@@ -1,13 +1,13 @@
 /* Offline cache for the Darul Uloom Fantasy League.
    Bump VERSION whenever any file below changes so phones pick up the update. */
-const VERSION = 'duf-v1.0.1';
+const VERSION = 'duf-v1.1.0';
 const ASSETS = [
   './', 'index.html', 'styles.css', 'config.js', 'firebase-config.js', 'core.js', 'demo.js', 'store.js', 'app.js',
   'players.json', 'manifest.webmanifest',
   'vendor/firebase-app-compat-10.14.1.js', 'vendor/firebase-auth-compat-10.14.1.js', 'vendor/firebase-firestore-compat-10.14.1.js',
   'fonts/BarlowCondensed-Medium.woff2', 'fonts/BarlowCondensed-Bold.woff2', 'fonts/BarlowCondensed-ExtraBold.woff2',
   'fonts/Amiri-Regular.woff2', 'fonts/Amiri-Bold.woff2',
-  'icons/logo-256.jpg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
   'data/league/league.json', 'data/league/data/squads.json', 'data/league/data/matches.json', 'data/league/data/goals.json',
   'data/league/data/appearances.json', 'data/league/fixtures/index.json', 'data/league/fixtures/week-01.json',
 ];

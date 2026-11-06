@@ -237,7 +237,7 @@
 
   // ---------- gates ----------
   function gateSignIn(main) {
-    main.innerHTML = `<div class="gate"><div class="card"><img src="icons/logo-256.jpg" alt="" width="96" height="96" style="border-radius:50%"><h1>Fantasy League</h1>
+    main.innerHTML = `<div class="gate"><div class="card"><svg class="" viewBox="0 0 100 118" width="72" height="85" aria-hidden="true"><path d="M50 3 L94 15 V58 C94 86 74 104 50 115 C26 104 6 86 6 58 V15 Z" fill="#9b1b30" stroke="#171412" stroke-width="5"/><text x="50" y="74" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="46" fill="#f2ebdd">DU</text></svg><h1>Fantasy League</h1>
       <p>Pick 9 players from the Darul Uloom Winter League, captain one, and score points from every match.</p>
       ${S.authError ? `<p class="msgs"><li>${esc(S.authError)}</li></p>` : ''}
       <button class="btn primary" data-act="signin">Sign in with Google</button>
