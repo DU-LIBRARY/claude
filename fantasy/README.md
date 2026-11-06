@@ -7,6 +7,16 @@ To try it without signing in, add `?demo` to the address. Demo mode uses made-up
 Points are always worked out from the league data in `du-library/skills` → `league/`. When you add a
 week's results with the league skill and push them to `main`, fantasy points update automatically.
 
+## Go-live checklist
+
+- [x] App built, tested and merged to `main` (GitHub Pages deploys it from there)
+- [ ] Publish the Firestore rules, signed in as `zabowath37@gmail.com` (the Firebase console account).
+      From the repo root on a computer: `npx firebase-tools login`, then `npx firebase-tools deploy --only firestore:rules`.
+      Or paste `firestore.rules` into the console as in step 1 below.
+- [ ] Sign in to the app as an admin. This saves the starting allowlist.
+- [ ] Admin → Gameweeks: open Week 1 with its deadline.
+- [ ] Each manager signs in and picks a team name and squad before the deadline.
+
 ## One-time setup (5 minutes)
 
 The app uses the same Firebase project as the Al-Ikmāl app (`on-device-syncing`), so Google sign-in
