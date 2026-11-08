@@ -3,7 +3,7 @@ name: Deploy app to GitHub Pages
 # Pages currently deploys from a branch (the repository root), which serves /app/, /siyar/ and
 # /mishkat/ as they are, so this only runs by hand. If Settings -> Pages -> Source is switched to
 # "GitHub Actions", restore the push trigger:
-#   push: { branches: [main], paths: ['app/**', 'siyar/**', 'mishkat/**', 'fantasy/**', 'dist/**', 'index.html'] }
+#   push: { branches: [main], paths: ['app/**', 'siyar/**', 'mishkat/**', 'dist/**', 'index.html'] }
 # The site keeps the same layout as the branch deploy, so links and installed apps keep working.
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
       - name: Stage the site (same layout as the branch deploy)
         run: |
           mkdir _site
-          cp -r index.html .nojekyll app siyar mishkat fantasy dist _site/
+          cp -r index.html .nojekyll app siyar mishkat dist _site/
           rm -f _site/mishkat/DATA.md
       - uses: actions/upload-pages-artifact@v3
         with:

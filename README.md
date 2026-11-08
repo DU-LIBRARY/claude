@@ -65,7 +65,20 @@ One-time setup:
 2. **Build → Authentication → Get started → Sign-in method → Google → Enable**, pick your email, **Save**.
 3. **Authentication → Settings → Authorized domains → Add domain**: `du-library.github.io`.
 4. **Build → Firestore Database → Create database**, pick a location near you, start in **production mode**.
-5. In Firestore, open the **Rules** tab, replace everything with the contents of `firestore.rules`, **Publish**.
+5. In Firestore, open the **Rules** tab and publish rules that include this block (inside `match /databases/{database}/documents { … }`):
+
+   ```
+   match /users/{uid}/notes/{noteId} {
+     allow read, delete: if request.auth != null && request.auth.uid == uid;
+     allow create, update: if request.auth != null && request.auth.uid == uid
+       && request.resource.data.keys().hasOnly(['text', 'updated', 'entry', 'name'])
+       && request.resource.data.text is string && request.resource.data.text.size() < 50000
+       && request.resource.data.updated is number;
+   }
+   ```
+
+   The live project (`on-device-syncing`) also serves another, private app, so its full rules file is kept in that
+   app's private repo. Edit the rules there, not by pasting this block over what is published.
 6. **Project settings (gear) → Your apps → Web (`</>`)**, register an app (no Hosting), and copy the `firebaseConfig` values into `app/firebase-config.js`.
 
 The config values are not secret; the rules make sure each person can only read and write their own notes.
@@ -111,7 +124,7 @@ Features:
 - Copy or share a hadeeth with its citation, e.g. `Mirqāt 6/237–238 · PDF p. 238–239`.
 - A **Synced from artifact · rev · version · date** line, and **What's new** showing what the last sync added or changed.
 - Notes sync with Google sign-in, like the Ikmāl app. They use the same Firebase project and the same `users/{uid}/notes`
-  collection, under ids that start with `mishkat-`, so each app ignores the other's notes. `firestore.rules` is unchanged.
+  collection, under ids that start with `mishkat-`, so each app ignores the other's notes.
   Stars and settings stay on the device and in the backup.
 
 Fonts: Amiri, Noto Naskh Arabic and IBM Plex Sans (SIL Open Font License), bundled in `mishkat/fonts/`.
