@@ -696,7 +696,170 @@
     const p = el('p', 'matn-ar'); p.lang = 'ar'; p.dir = 'rtl'; p.id = 'matn-' + s.id;
     renderRuns(p, s.matn, { words: st.words });
     box.appendChild(p);
+    const nr = buildNarrators(s);
+    if (nr) box.appendChild(nr);
     return box;
+  }
+
+  /* ---------- narrators: each hadeeth's isnād, with the full al-Ikmāl entry for every narrator ----------
+     data/narrators.json is built by tools/build_mishkat_narrators.py from a hand-checked map and
+     app/data/ikmal.json. The entry is shown here the way the Al-Ikmāl app shows it, and shares its
+     English / Arabic / both choice (localStorage "ikmal-lang"). */
+  let NARR = null;
+  const IK_CAT = {
+    s: ['Companions', 'الصحابة'], t: ['Successors', 'التابعون'], sf: ['Women Companions', 'الصحابيات'],
+    tf: ['Women Successors', 'التابعيات'], a: ['Imams of the Uṣūl', 'أئمة الأصول']
+  };
+  const ikLang = {
+    get() { try { const v = JSON.parse(localStorage.getItem('ikmal-lang')); return ['en', 'ar', 'both'].includes(v) ? v : 'en'; } catch (e) { return 'en'; } },
+    set(v) { try { localStorage.setItem('ikmal-lang', JSON.stringify(v)); } catch (e) {} }
+  };
+  /* the reader's own note on this narrator in Al-Ikmāl (same site, so the same localStorage), shown read-only */
+  function ikNote(id) {
+    try { const r = JSON.parse(localStorage.getItem('ikmal-notes') || '{}')[id]; return r && r.text && r.text.trim() ? r : null; } catch (e) { return null; }
+  }
+  const narrChain = (s) => (NARR && NARR.hadeeth[s.id]) || [];
+  const narrPerson = (key) => {
+    const p = NARR.people[key];
+    return { key, p, e: p && p.n != null ? NARR.ikmal[String(p.n)] : null };
+  };
+  const ikLab = (e) => (e.nl ? e.nl : String(e.n));
+
+  function narrChip(s, key, i, current) {
+    const { p, e } = narrPerson(key);
+    const b = el('button', 'narr-chip' + (e ? ' c-' + e.c : ' none')); b.type = 'button';
+    const nm = el('span', 'ar', p.as); nm.lang = 'ar'; nm.dir = 'rtl'; b.appendChild(nm);
+    if (p.check) b.appendChild(el('small', '', 'check'));
+    b.setAttribute('aria-label', (e ? e.full : p.as) + (e ? ', al-Ikmāl entry ' + ikLab(e) : ', not in al-Ikmāl'));
+    if (current != null) b.setAttribute('aria-current', String(i === current));
+    b.addEventListener('click', (ev) => { ev.preventDefault(); openNarrator(s, i); });
+    return b;
+  }
+
+  function buildNarrators(s) {
+    const chain = narrChain(s);
+    if (!chain.length) return null;
+    const wrap = el('div', 'narr');
+    wrap.appendChild(el('span', 'narr-l', chain.length > 1 ? 'Narrators' : 'Narrator'));
+    const row = el('div', 'narr-row'); row.setAttribute('role', 'list');
+    chain.forEach((key, i) => {
+      if (i) { const a = el('span', 'narr-sep', '←'); a.setAttribute('aria-hidden', 'true'); row.appendChild(a); }
+      const c = narrChip(s, key, i); c.setAttribute('role', 'listitem');
+      row.appendChild(c);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  let narrState = null;
+  function openNarrator(s, i) {
+    const d = $('dlg-narr');
+    narrState = { s, i };
+    renderNarrator();
+    if (!d.open) openDialog(d);
+    const x = d.querySelector('.ik-x'); if (x) x.focus();
+  }
+
+  function renderNarrator() {
+    const { s, i } = narrState;
+    const chain = narrChain(s), { p, e } = narrPerson(chain[i]);
+    const f = $('ik'); f.textContent = '';
+    const close = () => $('dlg-narr').close();
+
+    const top = el('div', 'ik-top');
+    top.appendChild(el('span', 'ik-ctx', (chain.length > 1 ? 'Narrator ' + (i + 1) + ' of ' + chain.length + ' · ' : '') +
+      (s.n != null ? 'Hadeeth ' + s.n : titleOf(s)) + ' · from al-Ikmāl'));
+    const x = el('button', 'ik-x'); x.type = 'button'; x.setAttribute('aria-label', 'Close');
+    x.appendChild(el('span', '', '✕')); x.addEventListener('click', close);
+    top.appendChild(x);
+    f.appendChild(top);
+
+    if (chain.length > 1) {
+      const ch = el('div', 'ik-chain'); ch.setAttribute('aria-label', 'Narrators of this hadeeth');
+      chain.forEach((key, k) => {
+        if (k) { const a = el('span', 'narr-sep', '←'); a.setAttribute('aria-hidden', 'true'); ch.appendChild(a); }
+        ch.appendChild(narrChip(s, key, k, i));
+      });
+      f.appendChild(ch);
+    }
+
+    const head = el('div', 'ik-head');
+    const num = el('span', 'ik-num');
+    if (e) { num.appendChild(document.createTextNode(ikLab(e))); num.appendChild(el('small', '', 'p. ' + e.p)); }
+    head.appendChild(num);
+    const names = el('div', 'ik-names');
+    const h = el('h2', 'ik-name', e ? e.ar : p.as); h.id = 'ik-name'; h.lang = 'ar'; h.dir = 'rtl';
+    names.appendChild(h);
+    if (e) {
+      const full = el('span', 'ik-full', e.full); full.lang = 'ar'; full.dir = 'rtl'; names.appendChild(full);
+      const tags = el('span', 'ik-tags'), c = IK_CAT[e.c] || ['', ''];
+      tags.appendChild(el('span', 'ik-cat ' + e.c, c[0]));
+      const ax = el('span', 'arx', c[1]); ax.lang = 'ar'; tags.appendChild(ax);
+      if (e.l) { const lx = el('span', 'arx', 'حرف ' + e.l); lx.lang = 'ar'; tags.appendChild(lx); }
+      names.appendChild(tags);
+    }
+    head.appendChild(names);
+    f.appendChild(head);
+
+    const body = el('div', 'ik-body');
+    if (p.check) body.appendChild(el('p', 'ik-note warn', 'Check this one: the link to al-Ikmāl is uncertain. ' + (p.note || '')));
+    else if (p.note) body.appendChild(el('p', 'ik-note', p.note));
+    if (e) {
+      const lang = el('div', 'seg ik-lang'); lang.setAttribute('role', 'group'); lang.setAttribute('aria-label', 'Language of the biography');
+      const th = el('span', 'thumb'); th.setAttribute('aria-hidden', 'true'); lang.appendChild(th);
+      [['en', 'English'], ['ar', 'العربية'], ['both', 'Both']].forEach(([v, t]) => {
+        const b = el('button'); b.type = 'button'; b.dataset.v = v;
+        if (v === 'ar') { const a = el('span', 'ar', t); a.lang = 'ar'; b.appendChild(a); } else b.textContent = t;
+        lang.appendChild(b);
+      });
+      body.appendChild(lang);
+      const text = el('div', 'ik-text'); text.style.display = 'grid'; text.style.gap = '14px';
+      const fill = (v) => {
+        text.textContent = '';
+        const ar = el('p', 'ik-ar', e.art); ar.lang = 'ar'; ar.dir = 'rtl';
+        const en = el('p', 'ik-en', e.en);
+        if (v === 'ar') text.appendChild(ar);
+        else if (v === 'both') { text.appendChild(ar); const sp = el('div', 'ik-sep'); sp.setAttribute('aria-hidden', 'true'); text.appendChild(sp); text.appendChild(en); }
+        else text.appendChild(en);
+      };
+      fill(ikLang.get());
+      body.appendChild(text);
+      requestAnimationFrame(() => makeSeg(lang, 'v', ikLang.get(), (v) => { ikLang.set(v); fill(v); }));
+      const mine = ikNote(e.id);
+      if (mine) {
+        const m = el('div', 'ik-mine');
+        m.appendChild(el('span', 'lbl', 'Your note in al-Ikmāl'));
+        const t = el('p', '', mine.text); t.dir = 'auto'; m.appendChild(t);
+        body.appendChild(m);
+      }
+    } else {
+      body.appendChild(el('p', 'ik-en', p.key === 'unnamed_sahabi'
+        ? 'The narrator is not named in the hadeeth, so there is no entry for him in al-Ikmāl.'
+        : 'This narrator is named in the isnād but has no entry of his or her own in al-Ikmāl.'));
+    }
+    f.appendChild(body);
+
+    const foot = el('div', 'ik-foot');
+    if (e) {
+      const ref = el('span', 'ref', 'al-Ikmāl entry ' + ikLab(e) + ' · ' + (IK_CAT[e.c] || [''])[0] + ' · printed page ' + e.p + ' / ');
+      const pa = el('span', '', 'ص ' + arNum(e.p)); pa.lang = 'ar'; ref.appendChild(pa);
+      foot.appendChild(ref);
+      const cp = el('button', 'btn small'); cp.type = 'button'; cp.appendChild(icon('copy')); cp.appendChild(el('span', '', 'Copy'));
+      cp.addEventListener('click', () => {
+        const v = ikLang.get(), t = v === 'ar' ? e.art : v === 'both' ? e.art + '\n\n' + e.en : e.en;
+        copyText(ikLab(e) + ' – ' + e.ar + '\n\n' + t + '\n\n— al-Ikmāl fī Asmāʾ al-Rijāl, entry ' + ikLab(e) + ', p. ' + e.p, 'Copied');
+      });
+      foot.appendChild(cp);
+    } else foot.appendChild(el('span', 'ref', 'Not in al-Ikmāl'));
+    if (chain.length > 1) {
+      const pv = el('button', 'btn small', 'Previous'); pv.type = 'button'; pv.disabled = i === 0;
+      pv.addEventListener('click', () => { narrState.i = i - 1; renderNarrator(); });
+      const nx = el('button', 'btn small', 'Next'); nx.type = 'button'; nx.disabled = i === chain.length - 1;
+      nx.addEventListener('click', () => { narrState.i = i + 1; renderNarrator(); });
+      foot.append(pv, nx);
+    }
+    f.appendChild(foot);
+    $('dlg-narr').scrollTop = 0;
   }
   function buildCm(s, c) {
     const cm = el('article', 'cm'); cm.id = s.id + '-' + c.key; cm.dataset.key = c.key;
@@ -1427,6 +1590,8 @@
     try {
       META = await loadJSON('meta', 'data/meta.json');
       BOOKS = await Promise.all((META.books || []).map(async (b) => ({ book: b, items: await loadJSON(b.id, 'data/' + b.file) })));
+      // narrators are extra: the reader still works without them
+      NARR = await loadJSON('narrators', 'data/narrators.json').catch(() => null);
     } catch (e) {
       $('empty').hidden = false;
       $('empty-t').textContent = 'The text could not load. Check your connection and reload; after one successful visit it works offline.';

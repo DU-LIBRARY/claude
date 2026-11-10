@@ -1,4 +1,4 @@
-const VERSION = 'mishkat-v1.8.0';
+const VERSION = 'mishkat-v1.9.0';
 /* Offline cache for the Mishkāt Commentary Reader.
    Bump VERSION whenever any file below changes so visitors receive the update. */
 const ASSETS = [
@@ -10,6 +10,7 @@ const ASSETS = [
   'manifest.webmanifest',
   'data/meta.json',
   'data/nikah.json',
+  'data/narrators.json',
   'vendor/motion-11.11.17.min.js',
   'vendor/firebase-app-compat-10.14.1.js',
   'vendor/firebase-auth-compat-10.14.1.js',

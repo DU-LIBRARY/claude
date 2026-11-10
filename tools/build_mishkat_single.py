@@ -34,6 +34,9 @@ blocks = '<script id="data-meta" type="application/json">' + blob(meta) + '</scr
 for b in meta['books']:
     data = json.loads((APP / 'data' / b['file']).read_text(encoding='utf-8'))
     blocks += '\n<script id="data-' + b['id'] + '" type="application/json">' + blob(data) + '</script>'
+narr = APP / 'data/narrators.json'
+if narr.exists():
+    blocks += '\n<script id="data-narrators" type="application/json">' + blob(json.loads(narr.read_text(encoding='utf-8'))) + '</script>'
 html = html.replace('<script id="data-meta" type="application/json"></script>', blocks)
 
 def inline_js(path):

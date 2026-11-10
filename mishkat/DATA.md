@@ -104,3 +104,22 @@ exactly as the artifact shows it, after whitespace runs collapse to one space.
   bāb title, three commentaries; `n` and `fasl` null, `bab` set). Its footnotes are namespaced like
   the intro's (`n-b1-L-1` → `n-nikah-b1-L-1`). It must follow its own `(k) باب …` heading.
 - A footnote can only be referenced from `paras` (never from matn, editorial, refs or other footnotes).
+
+## `data/narrators.json`: who narrates each hadeeth, with their al-Ikmāl entries
+
+Written by `tools/build_mishkat_narrators.py` from the hand-checked map in
+`tools/mishkat_narrators_map.py` and `app/data/ikmal.json`; do not hand-edit. When a new book is
+synced, add its hadeeth to `HADEETH` in the map (and any new people to `PEOPLE`) and rebuild; the
+build refuses to write if a hadeeth is missing, a number is not in al-Ikmāl, or a mapped narrator is
+not named in that hadeeth's matn.
+
+```json
+{ "schema": 1,
+  "people":  { "ibn_amr": { "n": 509, "as": "عبد الله بن عمرو", "note": null, "check": false } },
+              // n null: named in the isnād but no entry in al-Ikmāl; check true: link uncertain
+  "hadeeth": { "h3111": ["amr_shuayb", "shuayb", "ibn_amr"] },   // isnād order, [] if no named narrator
+  "ikmal":   { "509": { /* the full al-Ikmāl entry, as in app/data/ikmal.json */, "id": "509" } } }
+```
+
+The reader shows the chain under the matn; tapping a name opens the entry as the Al-Ikmāl app shows it.
+The file is optional: without it the reader works as before.
