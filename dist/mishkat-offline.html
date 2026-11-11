@@ -1459,6 +1459,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
     }
     f.appendChild(foot);
     $('dlg-narr').scrollTop = 0;
+    savePosSoon();
   }
   function buildCm(s, c) {
     const cm = el('article', 'cm'); cm.id = s.id + '-' + c.key; cm.dataset.key = c.key;
@@ -1774,6 +1775,8 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
   function route() {
     if (!SECTIONS.length) return;
     const p = parseHash();
+    const first = !resumed; resumed = true;
+    if (!p && first && resume()) return;
     if (!p) {
       if (isWide()) { try { history.replaceState(null, '', '#' + SECTIONS[0].id); } catch (e) {} openSection({ sid: SECTIONS[0].id }); return; }
       const prevCur = st.cur, wasRead = lastView === 'read';
@@ -1782,6 +1785,7 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
       return;
     }
     openSection(p);
+    savePos();
   }
   function openSection(p) {
     const s = BYID.get(p.sid);
@@ -1830,6 +1834,74 @@ dialog::backdrop{background:rgb(10 20 15 / .45);backdrop-filter:blur(2px)}
       M.animate([matnBox, ...parts], { opacity: [0, 1], y: [10, 0] }, { delay: M.stagger(0.05), duration: 0.35, ease: EASE });
     }
   }
+
+  /* ---------- open where the reader left off ----------
+     Remembers (localStorage "mishkat-last") the hadeeth that was open, how far down it was read and an
+     al-Ikmāl narrator left open over it. The place is kept as "this paragraph, this far from the top", so
+     it still lands right after a text-size change; a different layout falls back to the share of the page
+     read. Only used when the app opens with no #link, so shared links and the jump list still win. */
+  const ANCHORS = 'p, li, h2, h3, .narr, .cm-t';
+  const REF = 120; // a line just under the sticky header
+  let resumed = false, restoring = false, saveTimer = 0, lastSid = null;
+  const layoutSig = () => effectiveMode() + ':' + st.tab + ':' + [...st.collapsed].sort().join(',');
+  const settle = () => (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 800))]) : Promise.resolve());
+  function savePos() {
+    clearTimeout(saveTimer); saveTimer = 0;
+    if (!resumed || restoring || !SECTIONS.length) return;
+    if (st.cur) lastSid = st.cur;
+    const rec = { v: st.cur ? 'read' : 'home', sid: st.cur || lastSid, t: Date.now() };
+    if (!st.cur) rec.hy = Math.round(window.scrollY);
+    else {
+      const nodes = main.querySelectorAll(ANCHORS);
+      rec.a = -1; rec.o = 0;
+      for (let i = 0; i < nodes.length; i++) {
+        const b = nodes[i].getBoundingClientRect();
+        if (b.height && b.bottom > REF) { rec.a = i; rec.o = Math.round(b.top - REF); break; }
+      }
+      const r = rd.getBoundingClientRect(), span = r.height - window.innerHeight;
+      rec.f = span > 0 ? +Math.max(0, Math.min(1, -r.top / span)).toFixed(4) : 0;
+      rec.sig = layoutSig();
+      const d = $('dlg-narr');
+      if (d.open && narrState && narrState.s.id === st.cur) { rec.ni = narrState.i; rec.ns = Math.round(d.scrollTop); }
+    }
+    store.set('last', rec);
+  }
+  function savePosSoon() { if (!saveTimer) saveTimer = setTimeout(savePos, 400); }
+  function resume() {
+    const rec = store.get('last', null);
+    if (!rec || typeof rec !== 'object') return false;
+    if (rec.sid && BYID.has(rec.sid)) lastSid = rec.sid;
+    if (rec.v === 'home' && !isWide()) {
+      if (rec.hy > 0) { restoring = true; settle().then(() => { window.scrollTo(0, rec.hy); restoring = false; }); }
+      return false; // the list shows as usual, scrolled back to where it was
+    }
+    if (!rec.sid || !BYID.has(rec.sid)) return false;
+    try { history.replaceState(null, '', '#' + rec.sid); } catch (e) {}
+    restoring = true;
+    openSection({ sid: rec.sid });
+    settle().then(() => requestAnimationFrame(() => {
+      if (st.cur === rec.sid) {
+        let y = null;
+        if (rec.sig === layoutSig() && rec.a >= 0) { const n = main.querySelectorAll(ANCHORS)[rec.a]; if (n) y = window.scrollY + n.getBoundingClientRect().top - REF - (rec.o || 0); }
+        if (y === null && rec.f > 0) { const r = rd.getBoundingClientRect(); y = window.scrollY + r.top + rec.f * (r.height - window.innerHeight); }
+        if (y !== null && y > 0) window.scrollTo(0, y);
+        const s = BYID.get(rec.sid);
+        if (rec.ni != null && NARR && rec.ni >= 0 && rec.ni < narrChain(s).length) {
+          openNarrator(s, rec.ni);
+          if (rec.ns) $('dlg-narr').scrollTop = rec.ns;
+        }
+      }
+      restoring = false;
+      savePos();
+    }));
+    return true;
+  }
+  window.addEventListener('scroll', savePosSoon, { passive: true });
+  $('dlg-narr').addEventListener('scroll', savePosSoon, { passive: true });
+  $('dlg-narr').addEventListener('close', () => setTimeout(savePos, 0));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) savePos(); });
+  window.addEventListener('pagehide', savePos);
+
   window.addEventListener('hashchange', route);
   wideMQ.addEventListener('change', () => { route(); drawPattern(false); });
 

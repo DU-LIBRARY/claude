@@ -117,6 +117,8 @@ Features:
 
 - Search in Arabic with or without tashkeel, or by hadeeth number (Latin or Arabic-Indic digits). Optional search inside the commentaries.
 - A jump-to menu and deep links: `…/mishkat/#h3081`, `#intro`, `#h3081-tibi` (one commentary).
+- Opens where you left off: the hadeeth you were reading, scrolled to the same paragraph, with an al-Ikmāl narrator
+  reopened if one was open. Saved on the device as you read. A deep link still opens its own hadeeth.
 - Compare: one commentary at a time, all three stacked (each one folds), or side by side on wide screens (two or three columns).
 - Footnotes on or off. Footnote marks and notes jump to each other. Gradings, takhrīj lines, PDF page refs and editorial notes are kept as printed.
 - Arabic text size, light, dark or system theme, and a reading-progress bar.
