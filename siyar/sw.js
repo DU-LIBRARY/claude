@@ -3,12 +3,12 @@
    separate cache, served cache-first; on an update the stored volumes are carried over (the Arabic
    text never changes with the app shell). Bump TEXT_REV when the volume files themselves change:
    stored volumes are then carried over only from caches of the same text revision. */
-const VERSION = 'v1.0.1';
+const VERSION = 'v1.0.2';
 const TEXT_REV = 't2';
 const SHELL = 'siyar-' + VERSION;
 const VOLS = 'siyar-vols-' + TEXT_REV + '-' + VERSION;
 const ASSETS = [
-  './', 'index.html', 'app.js', 'manifest.json',
+  './', 'index.html', 'app.js', 'manifest.webmanifest',
   'vendor/motion-11.11.17.min.js',
   'data/siyar.json', 'data/full/index.json',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
@@ -20,7 +20,8 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS)));
+  // cache: 'reload' bypasses the HTTP cache, so a stale or half-downloaded copy never fails the install
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (e) => {

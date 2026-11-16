@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Siyar">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preload" href="fonts/amiri-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -432,6 +432,19 @@ dialog .toast{position:sticky;left:auto;right:auto;bottom:10px;margin:0 12px 12p
         <button class="btn" type="button" id="dl-rm">Remove downloaded volumes</button></div>
     </div>
     <div class="actions"><button class="btn primary" value="close">Done</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-android" aria-labelledby="android-h">
+  <form method="dialog" class="dlg">
+    <h2 id="android-h">Install on Android</h2>
+    <ol>
+      <li>Wait until the status reads <b>Available offline</b>.</li>
+      <li>Open Chrome’s menu (<b>⋮</b>, top right).</li>
+      <li>Choose <b>Install app</b> (or <b>Add to Home screen</b>, then <b>Install</b>).</li>
+    </ol>
+    <p>If neither option appears, reload the page once and try again. In Samsung Internet use the menu (<b>☰</b>) and <b>Add page to → Home screen</b>.</p>
+    <div class="actions"><button class="btn primary" value="close">Got it</button></div>
   </form>
 </dialog>
 

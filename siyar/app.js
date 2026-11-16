@@ -1142,7 +1142,11 @@
     installBtn.hidden = false;
     if (canAnimate()) M.animate(installBtn, { opacity: [0, 1], scale: [0.9, 1] }, { type: 'spring', stiffness: 420, damping: 26 });
   }
+  const isAndroid = /android/i.test(navigator.userAgent);
   if (isIOS && !standalone && canSW) revealInstall();
+  // Chrome may withhold beforeinstallprompt (dismissed before, slow first visit, other browsers):
+  // still offer the button on Android, with the menu steps, so the app can always be installed.
+  if (isAndroid && !standalone && canSW) setTimeout(() => { if (!standalone) revealInstall(); }, 4000);
   installBtn.addEventListener('click', async () => {
     if (deferred) {
       deferred.prompt();
@@ -1150,6 +1154,7 @@
       deferred = null;
       if (r && r.outcome === 'accepted') installBtn.hidden = true;
     } else if (isIOS) openDialog($('dlg-ios'));
+    else if (isAndroid) openDialog($('dlg-android'));
   });
   window.addEventListener('appinstalled', () => { installBtn.hidden = true; toast('Installed. Open it from your home screen.'); });
 
