@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Du‘ā’ before sleeping</title>
+<style>
+  @font-face { font-family: "Amiri"; src: url("fonts/Amiri-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: "Amiri"; src: url("fonts/Amiri-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Cinzel"; src: url("fonts/Cinzel[wght].ttf"); font-weight: 400 900; }
+  @font-face { font-family: "Cormorant"; src: url("fonts/CormorantGaramond[wght].ttf"); font-weight: 300 700; }
+  @font-face { font-family: "Cormorant"; src: url("fonts/CormorantGaramond-Italic[wght].ttf"); font-weight: 300 700; font-style: italic; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; }
+
+  /* Palettes: flat colour only. bg / tile / panel / ink / accent */
+  .teal   { --bg: #14302e; --tile: #1b3d3a; --line: #24504b; --panel: #f2e9d8; --ink: #14302e; --soft: #4f6461; --accent: #c4703c; }
+  .indigo { --bg: #1e2246; --tile: #262b56; --line: #323868; --panel: #f3ebe0; --ink: #1e2246; --soft: #5d607d; --accent: #b8564b; }
+  .clay   { --bg: #8c3f2b; --tile: #974833; --line: #a3553e; --panel: #f4ecdf; --ink: #2a1d18; --soft: #6b574d; --accent: #8c3f2b; }
+
+  #card { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: var(--bg); font-family: "Cormorant", serif; }
+  #bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  #content {
+    position: absolute; left: 150px; right: 150px; top: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--ink);
+    padding-top: 236px;
+  }
+  .label {
+    font-family: "Cinzel"; font-weight: 600; font-size: 17px; letter-spacing: .36em; padding-left: .36em; color: var(--accent);
+  }
+  .title { margin-top: 12px; font-style: italic; font-weight: 500; font-size: 50px; line-height: 1; }
+
+  .dua { margin-top: 44px; font-family: "Amiri"; font-weight: 400; direction: rtl; font-size: 70px; line-height: 1.7; }
+  .dua span { display: block; white-space: nowrap; }
+
+  .orn { margin: 38px 0 34px; width: 220px; height: 20px; color: var(--accent); }
+
+  .translation { font-weight: 500; font-size: 29px; line-height: 1.36; }
+  .translit { margin-top: 18px; font-style: italic; font-size: 21.5px; line-height: 1.4; color: var(--soft); }
+
+  .source { position: absolute; left: 0; right: 0; bottom: 168px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .source .ref { font-family: "Cinzel"; font-weight: 600; font-size: 17px; letter-spacing: .3em; padding-left: .3em; color: var(--ink); }
+  .source .nar { font-style: italic; font-size: 20px; color: var(--soft); }
+</style>
+</head>
+<body>
+<div id="card">
+  <svg id="bg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <div id="content">
+    <div class="label">AT BEDTIME</div>
+    <div class="title">Du‘ā’ before sleeping</div>
+
+    <div class="dua" lang="ar">
+      <span>الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا</span>
+      <span>وَسَقَانَا وَكَفَانَا وَآوَانَا</span>
+      <span>فَكَمْ مِمَّنْ لَا كَافِيَ لَهُ وَلَا مُؤْوِيَ</span>
+    </div>
+
+    <svg class="orn" viewBox="0 0 220 20"><g fill="none" stroke="currentColor" stroke-width="1.3">
+      <path d="M0 10H84M136 10H220"/>
+      <g transform="translate(110 10)"><rect x="-7" y="-7" width="14" height="14"/><rect x="-7" y="-7" width="14" height="14" transform="rotate(45)"/></g>
+      <circle cx="110" cy="10" r="2.2" fill="currentColor" stroke="none"/></g></svg>
+
+    <div class="translation">“All praise is for Allah, who fed us and gave us drink, who sufficed us and gave us shelter — for how many have no one to suffice them, and no one to shelter them.”</div>
+    <div class="translit">Al-ḥamdu lillāhi-lladhī aṭ‘amanā wa saqānā, wa kafānā wa āwānā, fa-kam mimman lā kāfiya lahu wa lā mu’wī.</div>
+
+    <div class="source">
+      <div class="ref">ṢAḤĪḤ MUSLIM 2715</div>
+      <div class="nar">Narrated by Anas ibn Mālik</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const card = document.getElementById("card");
+  card.classList.add(q.get("theme") || "teal");
+  const css = getComputedStyle(card), v = n => css.getPropertyValue(n).trim();
+  const W = 1080, H = 1350;
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, a = {}, p) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; };
+  const star = (cx, cy, R, r, n = 8, rot = 0) => {
+    const p = []; for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, d = i % 2 ? r : R; p.push(`${(cx + d * Math.cos(a)).toFixed(2)},${(cy + d * Math.sin(a)).toFixed(2)}`); } return p.join(" ");
+  };
+
+  const svg = document.getElementById("bg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const defs = el("defs", {}, svg);
+
+  // --- star-and-cross tessellation: 8-point {8/2} stars whose axial tips meet; the gaps form the crosses
+  const s = 120, R = s / 2, r = R * Math.cos(Math.PI / 4) / Math.cos(Math.PI / 8);
+  const pat = el("pattern", { id: "tile", width: s, height: s, patternUnits: "userSpaceOnUse", x: W / 2, y: H / 2 }, defs);
+  for (const [x, y] of [[0, 0], [s, 0], [0, s], [s, s]]) {
+    el("polygon", { points: star(x, y, R, r), fill: v("--tile"), stroke: v("--line"), "stroke-width": 2 }, pat);
+    el("polygon", { points: star(x, y, R * .42, r * .42, 8, Math.PI / 8), fill: "none", stroke: v("--line"), "stroke-width": 2 }, pat);
+  }
+  el("polygon", { points: star(s / 2, s / 2, 9, 4, 4, Math.PI / 4), fill: v("--line") }, pat);
+  el("rect", { width: W, height: H, fill: "url(#tile)" }, svg);
+
+  // --- pointed (Persian four-centred) arch panel
+  const x0 = 110, x1 = W - 110, cx = W / 2, ys = 330, rise = 250, yb = 1248;
+  const arch = (i) => {
+    const a0 = x0 + i, a1 = x1 - i, top = ys - rise + i * 1.15, s0 = ys + i * .2, b = yb - i, hw = (a1 - a0) / 2;
+    return `M${a0} ${b} V${s0} C${a0} ${s0 - rise * .78}, ${cx - hw * .3} ${top + rise * .22}, ${cx} ${top} C${cx + hw * .3} ${top + rise * .22}, ${a1} ${s0 - rise * .78}, ${a1} ${s0} V${b} Z`;
+  };
+  el("path", { d: arch(-14), fill: v("--bg") }, svg);
+  el("path", { d: arch(-14), fill: "none", stroke: v("--accent"), "stroke-width": 2 }, svg);
+  el("path", { d: arch(0), fill: v("--panel") }, svg);
+  el("path", { d: arch(16), fill: "none", stroke: v("--accent"), "stroke-width": 1.2 }, svg);
+  el("path", { d: arch(22), fill: "none", stroke: v("--accent"), "stroke-width": .6, opacity: .7 }, svg);
+
+  // crescent at the apex, flat
+  const my = 168, mr = 28;
+  const mm = el("mask", { id: "m" }, defs);
+  el("rect", { width: W, height: H, fill: "#000" }, mm);
+  el("circle", { cx, cy: my, r: mr, fill: "#fff" }, mm);
+  el("circle", { cx: cx + 13, cy: my - 9, r: mr * .86, fill: "#000" }, mm);
+  el("circle", { cx, cy: my, r: mr, fill: v("--accent"), mask: "url(#m)" }, svg);
+
+  // small rosettes at the arch's springing points
+  for (const x of [x0 + 40, x1 - 40]) {
+    el("polygon", { points: star(x, ys + 40, 12, 5.2, 8, Math.PI / 8), fill: v("--accent") }, svg);
+  }
+
+  // subtle paper grain on the panel only
+  defs.insertAdjacentHTML("beforeend", `
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="5"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 .3  0 0 0 0 .22  0 0 0 0 .1  0 0 0 .08 0"/></filter>
+    <clipPath id="pc"><path d="${arch(0)}"/></clipPath>`);
+  el("rect", { width: W, height: H, filter: "url(#grain)", "clip-path": "url(#pc)" }, svg);
+
+  document.fonts.ready.then(() => { document.body.dataset.ready = "1"; });
+})();
+</script>
+</body>
+</html>
